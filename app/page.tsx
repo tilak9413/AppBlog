@@ -1,12 +1,12 @@
 "use client";
 import HeroSection from "@/components/HeroSection/HeroSection";
 import Image from "next/image";
-import Team from "./Team";
-import Trusted from "./Trusted";
+import Team from "./home/Team";
+import Trusted from "./home/Trusted";
 import ServiceCard from "@/components/BlogCard";
-import WhyChooseUsSection from "./WhyChooseUsSection";
-import HowItWorksSection from "./HowItWorksSection";
-import IndustriesSection from "./IndustriesSection";
+import WhyChooseUsSection from "./home/WhyChooseUsSection";
+import HowItWorksSection from "./home/HowItWorksSection";
+import IndustriesSection from "./home/IndustriesSection";
 import { motion } from "framer-motion";
 
 const fadeIn = (delay = 0, y = 40) => ({
@@ -101,7 +101,7 @@ const companies = [
   },
 ];
 
-export default function Home() {
+export default function page() {
   return (
     <>
       <HeroSection />

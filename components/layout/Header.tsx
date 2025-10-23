@@ -6,7 +6,7 @@ import { FaBars, FaTimes } from "react-icons/fa";
 import CustomButton from "../ui/customButtom/Button";
 
 const List = [
-  { id: "1", link: "Home", path: "/home" },
+  { id: "1", link: "Home", path: "/" },
   { id: "2", link: "About Us", path: "/about" },
   { id: "3", link: "Services", path: "/services" },
   { id: "4", link: "Blogs", path: "/blogs" },
