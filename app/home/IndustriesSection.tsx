@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const industryCards = [
@@ -44,6 +44,29 @@ const industryCards = [
 ];
 
 const IndustriesSection: React.FC = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let scrollAmount = 0;
+    const scrollStep = 1; // pixels per frame
+    const scrollInterval = 20; // ms
+
+    const interval = setInterval(() => {
+      if (!scrollContainer) return;
+
+      scrollAmount += scrollStep;
+      if (scrollAmount >= scrollContainer.scrollWidth / 2) {
+        scrollAmount = 0; // reset to start for infinite scroll
+      }
+      scrollContainer.scrollLeft = scrollAmount;
+    }, scrollInterval);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white py-16 sm:py-20 px-4 sm:px-6 md:px-10 lg:px-16">
       <div className="max-w-7xl mx-auto text-center mb-10 sm:mb-16">
@@ -67,14 +90,18 @@ const IndustriesSection: React.FC = () => {
         </motion.p>
       </div>
 
-      {/* Grid layout - responsive for all devices */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        {industryCards.map((card, index) => (
+      {/* Auto-scroll container */}
+      <div
+        ref={scrollRef}
+        className="max-w-7xl mx-auto flex gap-6 sm:gap-8 overflow-x-hidden"
+      >
+        {/* Duplicate cards to make seamless scroll */}
+        {[...industryCards, ...industryCards].map((card, index) => (
           <motion.div
             key={index}
             whileHover={{ y: -5, scale: 1.02 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl shadow-md hover:shadow-2xl p-6 sm:p-8 border border-gray-100 flex flex-col items-start text-left hover:border-green-200 transition-all duration-300"
+            className="bg-white rounded-2xl shadow-md hover:shadow-2xl p-6 sm:p-8 border border-gray-100 flex-shrink-0 w-80 flex flex-col items-start text-left hover:border-green-200 transition-all duration-300"
           >
             <div className="p-3 bg-green-50 rounded-full border border-green-100 mb-5 flex items-center justify-center">
               <Image
