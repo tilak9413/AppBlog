@@ -1,9 +1,8 @@
-// /components/HeroSection/HeroSection.tsx
-// This component now combines the graphical hero from image_2c49d5.jpg
-// and the WhyChooseUsSection content and styling.
+'use client';
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import Image from 'next/image';
+import ComponentLoader from '@/components/ComponentLoader';
 
 interface HeroSectionProps {
   // These props are primarily for the *top* part of the hero
@@ -85,7 +84,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   return (
-    <section className="bg-white relative overflow-hidden">
+    <Suspense fallback={<ComponentLoader height="h-screen" message="Loading about page..." />}>
+      <section className="bg-white relative overflow-hidden">
       
       {/* SECTION 1: Top Graphical Hero */}
       <div className="relative pt-24 pb-20 md:pt-32 md:pb-28 min-h-[600px] flex items-center justify-center">
@@ -196,9 +196,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             />
           </div>
         </div>
-      </div> {/* End of Why Choose Us Section */}
+        </div> {/* End of Why Choose Us Section */}
 
-    </section>
+      </section>
+    </Suspense>
   );
 };
 

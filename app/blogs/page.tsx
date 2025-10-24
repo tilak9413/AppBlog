@@ -1,5 +1,9 @@
-import BlogCard from '@/components/BlogCard'
-import HeroSection from '@/components/HeroSection/HeroSection'
+import { Suspense, lazy } from 'react';
+import ComponentLoader from '@/components/ComponentLoader';
+
+// Lazy load components
+const BlogCard = lazy(() => import('@/components/BlogCard'));
+const HeroSection = lazy(() => import('@/components/HeroSection/HeroSection'));
 const blogs = [
   {
     id: 1,
@@ -59,21 +63,28 @@ const blogs = [
 function page() {
   return (
 <main className="bg-gray-50 min-h-screen">
-      <HeroSection 
-        title={"Explore Insightful Accounting Ideas"} 
-        disc={"Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm's way to accounting success by reading fresh perspectives & making informed decisions."}
-      />
+      <Suspense fallback={<ComponentLoader height="h-64" message="Loading hero section..." />}>
+        <HeroSection 
+          title={"Explore Insightful Accounting Ideas"} 
+          disc={"Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm's way to accounting success by reading fresh perspectives & making informed decisions."}
+        />
+      </Suspense>
 
       <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Improved Grid Layout for Responsiveness and Visual Appeal */}
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {blogs.map((blog) => (
-            <BlogCard
-              key={blog.id} // Use ID as key for stability
-              title={blog.title}
-              imageUrl={blog.imageUrl}
-              link={blog.link}
-            />
+            <Suspense key={blog.id} fallback={<ComponentLoader height="h-64" message="Loading blog card..." />}>
+              <BlogCard
+                id={blog.id}
+                title={blog.title}
+                imageUrl={blog.imageUrl}
+                link={blog.link}
+                category={blog.category}
+                date={blog.date}
+                readingTime={blog.readingTime}
+              />
+            </Suspense>
           ))}
         </div>
         

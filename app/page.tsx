@@ -1,11 +1,15 @@
 "use client";
 
-import Home from "./home/page";
+import { Suspense, lazy } from "react";
+import PageLoader from "@/components/PageLoader";
+
+// Lazy load the Home component
+const Home = lazy(() => import("./home/page"));
 
 export default function page() {
   return (
-    <>
- <Home/>
-    </>
+    <Suspense fallback={<PageLoader message="Loading home page..." />}>
+      <Home />
+    </Suspense>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Formik, Form, Field, ErrorMessage, useFormikContext } from 'formik';
 import * as yup from 'yup';
+import ComponentLoader from '@/components/ComponentLoader';
 
 export const contactSchema = yup.object({
   firstName: yup.string().trim().required('First Name is required.'),
@@ -94,9 +95,10 @@ const ContactForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full rounded-lg overflow-hidden ">
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+    <Suspense fallback={<ComponentLoader height="h-screen" message="Loading contact form..." />}>
+      <div className="min-h-screen flex justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full rounded-lg overflow-hidden ">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* LEFT SECTION (Info & Partners - Content is identical to the previous solution) */}
           <div className="p-8 md:p-12 lg:p-16 space-y-8 flex flex-col justify-between">
             <div>
@@ -213,9 +215,10 @@ const ContactForm: React.FC = () => {
               )}
             </Formik>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Suspense>
   );
 };
 

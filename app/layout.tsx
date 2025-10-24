@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import { Suspense, lazy } from "react";
+import ComponentLoader from "@/components/ComponentLoader";
+
+// Lazy load layout components
+const Header = lazy(() => import("@/components/layout/Header"));
+const Footer = lazy(() => import("@/components/layout/Footer"));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,9 +33,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header/>
+        <Suspense fallback={<ComponentLoader height="h-16" message="Loading header..." />}>
+          <Header/>
+        </Suspense>
         {children}
-        <Footer/>
+        <Suspense fallback={<ComponentLoader height="h-32" message="Loading footer..." />}>
+          <Footer/>
+        </Suspense>
       </body>
     </html>
   );

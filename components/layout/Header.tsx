@@ -69,7 +69,7 @@ export default function Header() {
   );
 
   return (
-    <header onMouseLeave={()=>setServicesOpen(false)} className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+    <header onMouseLeave={()=>setServicesOpen(false)} className="fixed top-0 left-0 w-full bg-white z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center p-4 relative">
         {/* Logo */}
         <div className="flex items-center space-x-2">
@@ -97,6 +97,7 @@ export default function Header() {
 
               {/* Mega Menu */}
               {item.isDropdown && servicesOpen && (
+
                 <div
             className="absolute top-full right-0 mt-2 bg-white shadow-2xl rounded-xl p-6 border border-gray-100 z-50 flex"
                   style={{ width: "900px", maxWidth: "95vw" }} // adjust width as needed
