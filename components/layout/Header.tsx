@@ -10,7 +10,7 @@ const List = [
   { id: "2", link: "About Us", path: "/about" },
   { id: "3", link: "Services", path: "/services" },
   { id: "4", link: "Blogs", path: "/blogs" },
-  { id: "5", link: "Contact Us", path: "/contactus" },
+  { id: "5", link: "Contact Us", path: "/Contactus" },
 ];
 
 export default function Header() {
