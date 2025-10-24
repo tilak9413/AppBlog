@@ -20,7 +20,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ title, imageUrl, link }) => {
         <img
           src='https://cdn.prod.website-files.com/675151fb2f862bb258ce1ae4/68f0a15e27ac1839fdd2e1bd_Agriculture%20Accounting%20How%20Can%20Farmers%20Manage%20Finances%20Better.png'
           alt={title}
-          className="w-full h-full object-cover"
+          className="w-full h-full  object-cover"
         />
       </div>
       <div className="p-4">
