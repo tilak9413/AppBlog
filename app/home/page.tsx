@@ -1,8 +1,9 @@
 "use client";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import ComponentLoader from "@/components/ComponentLoader";
+import axios from "axios";
 
 // Lazy load components
 const HeroSection = lazy(() => import("@/components/HeroSection/HeroSection"));
@@ -109,11 +110,44 @@ const companies = [
 ];
 
 export default function Home() {
+  const [heroData, setHeroData] = useState<{
+    title: string;
+    disc: string;
+    image?: string;
+    buttonText?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchHero = async () => {
+      try {
+        const res = await axios.get("/api/hero", {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`, // Add your token here
+          },
+        });
+        setHeroData(res.data);
+      } catch (error: any) {
+        console.error("Failed to fetch hero data:", error.response?.data || error.message);
+      }
+    };
+
+    fetchHero();
+  }, []);
+
     return (
         <>
-            <Suspense fallback={<ComponentLoader height="h-96" message="Loading hero section..." />}>
-                <HeroSection title={"  Discover Insights, Tips & Stories from Modern Developers"} disc={" Welcome to our Dev Blog — your go-to space for tutorials, best practices, and deep dives into web development, DevOps, and the latest technologies."}  />
-            </Suspense>
+       <Suspense fallback={<ComponentLoader height="h-96" message="Loading hero section..." />}>
+        {heroData ? (
+          <HeroSection
+            title={heroData.title}
+            disc={heroData.disc}
+            // image={heroData.image}
+            // buttonText={heroData.buttonText}
+          />
+        ) : (
+          <ComponentLoader height="h-96" message="Loading hero section..." />
+        )}
+      </Suspense>
 
             {/* Trusted Companies Section */}
             <motion.section

@@ -1,204 +1,233 @@
-import { ApiResponse, PaginatedResponse, Blog, Service, ContactFormData, NewsletterSubscriptionRequest, ServiceInquiryRequest } from '@/types/api';
+// API utility functions for fetching data from various endpoints
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
-
-// Generic API call function
-async function apiCall<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+/**
+ * Fetches blogs with optional pagination
+ * @param page Page number for pagination
+ * @param limit Number of items per page
+ * @returns Blog data with pagination info
+ */
+export async function fetchBlogs(page = 1, limit = 10) {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
+    const response = await fetch(`/api/blogs?page=${page}&limit=${limit}`, {
+      next: { revalidate: 60 } // Revalidate every 60 seconds
     });
-
-    const data = await response.json();
-
+    
     if (!response.ok) {
-      throw new Error(data.error || 'API request failed');
+      throw new Error('Failed to fetch blogs');
     }
-
-    return data;
+    
+    return await response.json();
   } catch (error) {
-    console.error('API call error:', error);
+    console.error('Error fetching blogs:', error);
     throw error;
   }
 }
 
-// Blog API functions
-export const blogApi = {
-  // Get all blogs
-  async getBlogs(params?: {
-    category?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<PaginatedResponse<Blog>> {
-    const searchParams = new URLSearchParams();
-    if (params?.category) searchParams.set('category', params.category);
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.offset) searchParams.set('offset', params.offset.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = `/api/blogs${queryString ? `?${queryString}` : ''}`;
-    
-    return apiCall<Blog[]>(endpoint);
-  },
-
-  // Get single blog
-  async getBlog(id: number): Promise<ApiResponse<Blog>> {
-    return apiCall<Blog>(`/api/blogs/${id}`);
-  },
-
-  // Create blog
-  async createBlog(blogData: Partial<Blog>): Promise<ApiResponse<Blog>> {
-    return apiCall<Blog>('/api/blogs', {
-      method: 'POST',
-      body: JSON.stringify(blogData),
+/**
+ * Fetches a single blog by ID
+ * @param id Blog ID
+ * @returns Blog data
+ */
+export async function fetchBlogById(id: string) {
+  try {
+    const response = await fetch(`/api/blogs/${id}`, {
+      next: { revalidate: 60 }
     });
-  },
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch blog');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching blog ${id}:`, error);
+    throw error;
+  }
+}
 
-  // Update blog
-  async updateBlog(id: number, blogData: Partial<Blog>): Promise<ApiResponse<Blog>> {
-    return apiCall<Blog>(`/api/blogs/${id}`, {
+/**
+ * Fetches services with optional pagination
+ * @param page Page number for pagination
+ * @param limit Number of items per page
+ * @returns Service data with pagination info
+ */
+export async function fetchServices(page = 1, limit = 10) {
+  try {
+    const response = await fetch(`/api/services?page=${page}&limit=${limit}`, {
+      next: { revalidate: 60 }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch services');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches a single service by ID
+ * @param id Service ID
+ * @returns Service data
+ */
+export async function fetchServiceById(id: string) {
+  try {
+    const response = await fetch(`/api/services/${id}`, {
+      next: { revalidate: 60 }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch service');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching service ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches about us data
+ * @returns About us data
+ */
+export async function fetchAboutData() {
+  try {
+    const response = await fetch('/api/about', {
+      next: { revalidate: 300 } // Revalidate every 5 minutes
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch about data');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching about data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches hero section data
+ * @returns Hero section data
+ */
+export async function fetchHeroData() {
+  try {
+    const response = await fetch('/api/hero', {
+      next: { revalidate: 300 }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch hero data');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching hero data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generic function to fetch data from any API endpoint
+ * @param endpoint API endpoint path
+ * @param options Fetch options
+ * @returns Response data
+ */
+export async function fetchFromAPI(endpoint: string, options = {}) {
+  try {
+    const response = await fetch(`/api/${endpoint}`, {
+      ...options,
+      next: { revalidate: 60 }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch from ${endpoint}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching from ${endpoint}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Posts data to an API endpoint
+ * @param endpoint API endpoint path
+ * @param data Data to post
+ * @returns Response data
+ */
+export async function postToAPI(endpoint: string, data: any) {
+  try {
+    const response = await fetch(`/api/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to post to ${endpoint}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error posting to ${endpoint}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Updates data at an API endpoint
+ * @param endpoint API endpoint path
+ * @param data Data to update
+ * @returns Response data
+ */
+export async function updateAPI(endpoint: string, data: any) {
+  try {
+    const response = await fetch(`/api/${endpoint}`, {
       method: 'PUT',
-      body: JSON.stringify(blogData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     });
-  },
+    
+    if (!response.ok) {
+      throw new Error(`Failed to update ${endpoint}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error(`Error updating ${endpoint}:`, error);
+    throw error;
+  }
+}
 
-  // Delete blog
-  async deleteBlog(id: number): Promise<ApiResponse<void>> {
-    return apiCall<void>(`/api/blogs/${id}`, {
+/**
+ * Deletes data at an API endpoint
+ * @param endpoint API endpoint path
+ * @returns Response data
+ */
+export async function deleteFromAPI(endpoint: string) {
+  try {
+    const response = await fetch(`/api/${endpoint}`, {
       method: 'DELETE',
     });
-  },
-};
-
-// Contact API functions
-export const contactApi = {
-  // Submit contact form
-  async submitContact(contactData: ContactFormData): Promise<ApiResponse<{ id: number; message: string }>> {
-    return apiCall<{ id: number; message: string }>('/api/contact', {
-      method: 'POST',
-      body: JSON.stringify(contactData),
-    });
-  },
-
-  // Get contact submissions (admin)
-  async getContactSubmissions(params?: {
-    limit?: number;
-    offset?: number;
-  }): Promise<PaginatedResponse<any>> {
-    const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.offset) searchParams.set('offset', params.offset.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = `/api/contact${queryString ? `?${queryString}` : ''}`;
     
-    return apiCall<any[]>(endpoint);
-  },
-};
-
-// Newsletter API functions
-export const newsletterApi = {
-  // Subscribe to newsletter
-  async subscribe(subscriptionData: NewsletterSubscriptionRequest): Promise<ApiResponse<any>> {
-    return apiCall<any>('/api/newsletter', {
-      method: 'POST',
-      body: JSON.stringify(subscriptionData),
-    });
-  },
-
-  // Unsubscribe from newsletter
-  async unsubscribe(email: string): Promise<ApiResponse<void>> {
-    return apiCall<void>(`/api/newsletter?email=${encodeURIComponent(email)}`, {
-      method: 'DELETE',
-    });
-  },
-
-  // Get newsletter subscribers (admin)
-  async getSubscribers(params?: {
-    limit?: number;
-    offset?: number;
-    status?: 'all' | 'active' | 'unsubscribed';
-  }): Promise<PaginatedResponse<any>> {
-    const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.offset) searchParams.set('offset', params.offset.toString());
-    if (params?.status) searchParams.set('status', params.status);
-
-    const queryString = searchParams.toString();
-    const endpoint = `/api/newsletter${queryString ? `?${queryString}` : ''}`;
+    if (!response.ok) {
+      throw new Error(`Failed to delete from ${endpoint}`);
+    }
     
-    return apiCall<any[]>(endpoint);
-  },
-};
-
-// Service API functions
-export const serviceApi = {
-  // Get all services
-  async getServices(params?: {
-    category?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<PaginatedResponse<Service>> {
-    const searchParams = new URLSearchParams();
-    if (params?.category) searchParams.set('category', params.category);
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.offset) searchParams.set('offset', params.offset.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = `/api/services${queryString ? `?${queryString}` : ''}`;
-    
-    return apiCall<Service[]>(endpoint);
-  },
-
-  // Create service
-  async createService(serviceData: Partial<Service>): Promise<ApiResponse<Service>> {
-    return apiCall<Service>('/api/services', {
-      method: 'POST',
-      body: JSON.stringify(serviceData),
-    });
-  },
-};
-
-// Service Inquiry API functions
-export const serviceInquiryApi = {
-  // Submit service inquiry
-  async submitInquiry(inquiryData: ServiceInquiryRequest): Promise<ApiResponse<{ id: number; message: string }>> {
-    return apiCall<{ id: number; message: string }>('/api/service-inquiry', {
-      method: 'POST',
-      body: JSON.stringify(inquiryData),
-    });
-  },
-
-  // Get service inquiries (admin)
-  async getInquiries(params?: {
-    limit?: number;
-    offset?: number;
-    status?: 'all' | 'new' | 'contacted' | 'quoted' | 'closed';
-  }): Promise<PaginatedResponse<any>> {
-    const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.set('limit', params.limit.toString());
-    if (params?.offset) searchParams.set('offset', params.offset.toString());
-    if (params?.status) searchParams.set('status', params.status);
-
-    const queryString = searchParams.toString();
-    const endpoint = `/api/service-inquiry${queryString ? `?${queryString}` : ''}`;
-    
-    return apiCall<any[]>(endpoint);
-  },
-};
-
-// Export all API functions
-export const api = {
-  blog: blogApi,
-  contact: contactApi,
-  newsletter: newsletterApi,
-  service: serviceApi,
-  serviceInquiry: serviceInquiryApi,
-};
+    return await response.json();
+  } catch (error) {
+    console.error(`Error deleting from ${endpoint}:`, error);
+    throw error;
+  }
+}

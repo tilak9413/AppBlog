@@ -1,8 +1,30 @@
 'use client';
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import Image from 'next/image';
 import ComponentLoader from '@/components/ComponentLoader';
+
+interface TeamMember {
+  name: string;
+  position: string;
+  bio: string;
+  image: string;
+}
+
+interface Value {
+  title: string;
+  description: string;
+}
+
+interface AboutData {
+  title: string;
+  description: string;
+  mission: string;
+  vision: string;
+  team: TeamMember[];
+  companyHistory: string;
+  values: Value[];
+}
 
 interface HeroSectionProps {
   // These props are primarily for the *top* part of the hero
@@ -203,4 +225,116 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   );
 };
 
-export default HeroSection;
+// Main About Page Component
+const AboutPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [aboutData, setAboutData] = useState<AboutData | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        const response = await fetch('/api/about');
+        if (response.ok) {
+          const data = await response.json();
+          setAboutData(data);
+        } else {
+          console.log('No about data found, using default content');
+        }
+      } catch (err) {
+        console.error('Error fetching about data:', err);
+        setError('Failed to load about data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAboutData();
+  }, []);
+
+  // Use the existing HeroSection component with data from API if available
+  return (
+    <div>
+      <HeroSection 
+        title={aboutData?.title || "Work With The Top Accounting Talent; Fast, Skilled, And Specialized"}
+        disc={aboutData?.description || "Partner with StanTax to elevate your practice. From precision in data to streamlined processes, we handle the heavy lifting, allowing you to focus on what matters most—your clients. Discover the StanTax difference today."}
+      />
+      
+      {/* Display additional about data if available */}
+      {aboutData && (
+        <div className="container mx-auto px-4 py-12">
+          {/* Mission & Vision */}
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            <div className="bg-white p-8 rounded-lg shadow-md">
+              <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
+              <p>{aboutData.mission}</p>
+            </div>
+            <div className="bg-white p-8 rounded-lg shadow-md">
+              <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
+              <p>{aboutData.vision}</p>
+            </div>
+          </div>
+
+          {/* Company History */}
+          {aboutData.companyHistory && (
+            <div className="mb-16">
+              <h2 className="text-3xl font-bold mb-6 text-center">Our History</h2>
+              <div className="bg-white p-8 rounded-lg shadow-md">
+                <p className="whitespace-pre-line">{aboutData.companyHistory}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Values */}
+          {aboutData.values && aboutData.values.length > 0 && (
+            <div className="mb-16">
+              <h2 className="text-3xl font-bold mb-6 text-center">Our Values</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {aboutData.values.map((value, index) => (
+                  <div key={index} className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold mb-3">{value.title}</h3>
+                    <p>{value.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Team */}
+          {aboutData.team && aboutData.team.length > 0 && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6 text-center">Our Team</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {aboutData.team.map((member, index) => (
+                  <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center">
+                    {member.image ? (
+                      <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
+                        <Image 
+                          src={member.image} 
+                          alt={member.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
+                        <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                        </svg>
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold">{member.name}</h3>
+                    <p className="text-blue-600 mb-3">{member.position}</p>
+                    <p className="text-sm">{member.bio}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AboutPage;

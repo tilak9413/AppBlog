@@ -10,6 +10,7 @@ const JoinTeamSection: React.FC = () => {
         <div className="text-center md:text-left mb-10">
           <h2 className="text-3xl sm:text-4xl font-semibold text-[#3d466e] tracking-tight">
             Be Part Of Something Great
+            
           </h2>
 
           <p className="mt-3 text-gray-600 leading-relaxed max-w-3xl mx-auto md:mx-0 text-base sm:text-lg">
