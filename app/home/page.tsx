@@ -107,7 +107,7 @@ const companies = [
 export default function Home() {
     return (
         <>
-            <HeroSection />
+            <HeroSection title={"  Discover Insights, Tips & Stories from Modern Developers"} disc={" Welcome to our Dev Blog — your go-to space for tutorials, best practices, and deep dives into web development, DevOps, and the latest technologies."}  />
 
             {/* Trusted Companies Section */}
             <motion.section
