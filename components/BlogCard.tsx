@@ -43,7 +43,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ id, title, imageUrl, link, category
             {category}
           </div>
         )}
-        <h3 className="text-gray-700 font-medium text-lg md:text-base line-clamp-2 hover:text-blue-600 transition-colors duration-200 mb-3">
+        <h3 className="text-gray-700 font-medium text-lg md:text-base line-clamp-2 hover:text-blue-600 transition-colors duration-200 mb-3 font-lexend">
           {title}
         </h3>
         {(date || readingTime) && (

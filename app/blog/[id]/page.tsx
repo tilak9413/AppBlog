@@ -287,7 +287,7 @@ export default function BlogArticle() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               {...fadeIn(0.2)}
-              className="text-center space-y-6"
+              className="text-center space-y-6 font-lexend"
             >
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
                 {blog.category}
@@ -346,7 +346,7 @@ export default function BlogArticle() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               {...fadeIn(0.4)}
-              className="prose prose-lg max-w-none"
+              className="prose prose-lg max-w-none font-lexend"
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
           </div>

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Font configuration */
+.font-lexend {
+  font-family: var(--font-lexend), system-ui, -apple-system, sans-serif;
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0%);
@@ -18,6 +23,7 @@
 .prose {
   color: #374151;
   line-height: 1.75;
+  font-family: var(--font-lexend), system-ui, -apple-system, sans-serif;
 }
 
 .prose h2 {

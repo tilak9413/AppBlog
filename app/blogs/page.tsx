@@ -64,10 +64,12 @@ function page() {
   return (
 <main className="bg-gray-50 min-h-screen">
       <Suspense fallback={<ComponentLoader height="h-64" message="Loading hero section..." />}>
-        <HeroSection 
-          title={"Explore Insightful Accounting Ideas"} 
-          disc={"Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm's way to accounting success by reading fresh perspectives & making informed decisions."}
-        />
+        <div className="font-lexend">
+          <HeroSection 
+            title={"Explore Insightful Accounting Ideas"} 
+            disc={"Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm's way to accounting success by reading fresh perspectives & making informed decisions."}
+          />
+        </div>
       </Suspense>
 
       <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
