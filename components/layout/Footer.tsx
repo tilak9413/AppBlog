@@ -10,6 +10,7 @@ const FooterLink = ({ href, children }: { href: string; children: React.ReactNod
   </li>
 );
 
+
 const Footer: React.FC = () => {
   return (
     <footer className="bg-[#1e1e1e] text-white py-12 px-6 md:px-16">
