@@ -69,7 +69,7 @@ export default function Header() {
   );
 
   return (
-    <header onMouseLeave={()=>setServicesOpen(false)} className="fixed top-0 left-0 w-full bg-white z-50">
+    <header onMouseLeave={()=>setServicesOpen(false)} className=" w-full bg-white z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center p-4 relative">
         {/* Logo */}
         <div className="flex items-center space-x-2">

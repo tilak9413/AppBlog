@@ -53,9 +53,9 @@ const WhyChooseUsSection: React.FC = () => {
 
         {/* Right Illustration Placeholder */}
         <div className="lg:w-1/2 flex justify-center lg:justify-end">
-          <div className="bg-gray-50 rounded-xl p-8 shadow-lg w-full max-w-lg h-[400px] flex items-center justify-center border border-gray-200">
-            <p className="text-gray-400 text-center">Complex Illustration Placeholder</p>
-          </div>
+          {/* <div className="bg-gray-50 rounded-xl p-8 shadow-lg w-full max-w-lg h-[400px] flex items-center justify-center border border-gray-200"> */}
+      <img src="https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/67348d71d96b43d96eea23f1_why_choose.svg" alt="" />
+          {/* </div> */}
         </div>
       </div>
     </section>

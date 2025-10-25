@@ -110,98 +110,103 @@ const companies = [
 ];
 
 export default function Home() {
-  const [heroData, setHeroData] = useState<{
-    title: string;
-    disc: string;
-    image?: string;
-    buttonText?: string;
-  } | null>(null);
+    const [heroData, setHeroData] = useState<{
+        title: string;
+        disc: string;
+        image?: string;
+        buttonText?: string;
+    } | null>(null);
+    const [trustedCompanies, setTrustedCompanies] = useState<{
+        _id: string;
+        name: string;
+        image: string;
+    }[]>([]);
+    const [loadingTrusted, setLoadingTrusted] = useState(true);
 
-  useEffect(() => {
-    const fetchHero = async () => {
-      try {
-        const res = await axios.get("/api/hero", {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`, // Add your token here
-          },
-        });
-        setHeroData(res.data);
-      } catch (error: any) {
-        console.error("Failed to fetch hero data:", error.response?.data || error.message);
-      }
-    };
+    useEffect(() => {
+        const fetchHero = async () => {
+            try {
+                const res = await axios.get("/api/hero", {
+                    headers: {
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`, // Add your token here
+                    },
+                });
+                setHeroData(res.data);
+            } catch (error: any) {
+                console.error("Failed to fetch hero data:", error.response?.data || error.message);
+            }
+        };
 
-    fetchHero();
-  }, []);
+        fetchHero();
+    }, []);
+    useEffect(() => {
+        const fetchTrustedCompanies = async () => {
+            setLoadingTrusted(true);
+            try {
+                const res = await axios.get('/api/tructedCompany');
+                setTrustedCompanies(res.data); // expects an array from GET
+            } catch (error: any) {
+                console.error('Failed to fetch trusted companies:', error.response?.data || error.message);
+            } finally {
+                setLoadingTrusted(false);
+            }
+        };
+
+        fetchTrustedCompanies();
+    }, []);
+
 
     return (
         <>
-       <Suspense fallback={<ComponentLoader height="h-96" message="Loading hero section..." />}>
-        {heroData ? (
-          <HeroSection
-            title={heroData.title}
-            disc={heroData.disc}
-            // image={heroData.image}
-            // buttonText={heroData.buttonText}
-          />
-        ) : (
-          <ComponentLoader height="h-96" message="Loading hero section..." />
-        )}
-      </Suspense>
+            <Suspense fallback={<ComponentLoader height="h-96" message="Loading hero section..." />}>
+                {heroData ? (
+                    <HeroSection
+                        title={heroData.title}
+                        disc={heroData.disc}
+                        image={heroData.image}
+                    // buttonText={heroData.buttonText}
+                    />
+                ) : (
+                    <ComponentLoader height="h-96" message="Loading hero section..." />
+                )}
+            </Suspense>
 
             {/* Trusted Companies Section */}
-            <motion.section
-                {...fadeIn(0.2, 50)}
-                className="relative w-full py-20 bg-gradient-to-br from-gray-50 to-white overflow-hidden flex flex-col items-center"
-            >
-                <motion.h1
-                    {...fadeIn(0.1, 20)}
-                    className="text-3xl md:text-4xl font-bold text-gray-800 mb-10 text-center"
-                >
+            <motion.section {...fadeIn(0.2, 50)} className="relative w-full py-20 bg-gradient-to-br from-gray-50 to-white overflow-hidden flex flex-col items-center">
+                <motion.h1 {...fadeIn(0.1, 20)} className="text-3xl md:text-4xl font-bold text-gray-800 mb-10 text-center">
                     Trusted by Global Companies
                 </motion.h1>
 
-                {/* Marquee Container */}
                 <div className="relative w-full overflow-hidden">
-                    {/* Moving Track */}
-                    <motion.div
-                        className="flex gap-10"
-                        animate={{ x: ["0%", "-50%"] }}
-                        transition={{
-                            repeat: Infinity,
-                            repeatType: "loop",
-                            duration: 15,
-                            ease: "linear",
-                        }}
-                    >
-                        {/* Repeat logos twice for continuous loop */}
-                        {[...companies, ...companies].map((company, index) => (
-                            <div
-                                key={index}
-                                className="flex items-center justify-center w-32 h-16 opacity-80 hover:opacity-100 transition"
-                            >
-                                {company.type === "image" ? (
+                    {loadingTrusted ? (
+                        <div className="flex justify-center items-center h-24">
+                            <ComponentLoader height="h-24" message="Loading companies..." />
+                        </div>
+                    ) : (
+                        <motion.div
+                            className="flex gap-10"
+                            animate={{ x: ["0%", "-50%"] }}
+                            transition={{ repeat: Infinity, repeatType: "loop", duration: 15, ease: "linear" }}
+                        >
+                            {[...trustedCompanies, ...trustedCompanies].map((company, index) => (
+                                <div key={index} className="flex items-center justify-center w-32 h-16 opacity-80 hover:opacity-100 transition">
                                     <Image
-                                        src={company.logo as string}
+                                        src={company.image}
                                         alt={company.name}
                                         width={120}
                                         height={60}
                                         className="object-contain grayscale hover:grayscale-0 transition duration-300"
                                     />
-                                ) : (
-                                    <div className="text-gray-700 hover:text-blue-500 transition">
-                                        {company.logo}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </motion.div>
+                                </div>
+                            ))}
+                        </motion.div>
+                    )}
                 </div>
 
-                {/* Fade edges */}
                 <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent"></div>
                 <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent"></div>
             </motion.section>
+
 
             {/* Team Section */}
             <motion.div {...fadeIn(0.2)} className="w-full px-6 md:px-16">

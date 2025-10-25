@@ -1,105 +1,108 @@
-import { Suspense, lazy } from 'react';
+'use client';
+
+import { useEffect, useState, Suspense, lazy } from 'react';
+import axios from 'axios';
 import ComponentLoader from '@/components/ComponentLoader';
 
 // Lazy load components
 const BlogCard = lazy(() => import('@/components/BlogCard'));
 const HeroSection = lazy(() => import('@/components/HeroSection/HeroSection'));
-const blogs = [
-  {
-    id: 1,
-    title: "Agriculture Accounting: How Can Farmers Manage Finances Better?",
-    category: "Industry Insights",
-    date: "Oct 15, 2025",
-    readingTime: "5 min read",
-    imageUrl: "/blog1.png",
-    link: "/blog/agriculture-accounting-guide",
-  },
-  {
-    id: 2,
-    title: "What Is Financial Reconciliation? A Complete Guide For CPA Firms",
-    category: "CPA Strategy",
-    date: "Sep 28, 2025",
-    readingTime: "8 min read",
-    imageUrl: "/blog2.png",
-    link: "/blog/financial-reconciliation-guide",
-  },
-  {
-    id: 3,
-    title: "How Much Does A Bookkeeper Cost? Pricing Breakdown 2025",
-    category: "Cost & Pricing",
-    date: "Aug 10, 2025",
-    readingTime: "4 min read",
-    imageUrl: "/blog3.png",
-    link: "/blog/bookkeeper-cost-breakdown",
-  },
-  {
-    id: 4,
-    title: "Top 5 Technologies Revolutionizing Modern Accounting Practice",
-    category: "Technology",
-    date: "Jul 20, 2025",
-    readingTime: "7 min read",
-    imageUrl: "/blog4.png", // Assuming you have more images
-    link: "/blog/top-5-accounting-tech",
-  },
-  {
-    id: 5,
-    title: "Understanding GAAP vs. IFRS: Which Standard Applies to You?",
-    category: "Global Standards",
-    date: "Jun 5, 2025",
-    readingTime: "6 min read",
-    imageUrl: "/blog5.png",
-    link: "/blog/gaap-vs-ifrs",
-  },
-  {
-    id: 6,
-    title: "The Essential Guide to Payroll Processing for Small Businesses",
-    category: "Business Tips",
-    date: "May 1, 2025",
-    readingTime: "10 min read",
-    imageUrl: "/blog6.png",
-    link: "/blog/payroll-processing-guide",
-  },
-];
-function page() {
+
+const Page = () => {
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [heroData, setHeroData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch('/api/blogs');
+        if (!response.ok) throw new Error('Failed to fetch blogs');
+
+        const data = await response.json();
+        console.log('Fetched blogs data:', data);
+
+        // Check if API returned an array or an object
+        if (Array.isArray(data)) {
+          setBlogs(data);
+        } else if (Array.isArray(data.blogs)) {
+          setBlogs(data.blogs);
+        } else {
+          setBlogs([]);
+        }
+
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setBlogs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <ComponentLoader height="h-64" message="Loading content..." />
+      </div>
+    );
+  }
+
   return (
-<main className="bg-gray-50 min-h-screen">
+    <main className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
       <Suspense fallback={<ComponentLoader height="h-64" message="Loading hero section..." />}>
         <div className="font-lexend">
-          <HeroSection 
-            title={"Explore Insightful Accounting Ideas"} 
-            disc={"Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm's way to accounting success by reading fresh perspectives & making informed decisions."}
+          <HeroSection
+            title={heroData?.title || 'Explore Insightful Accounting Ideas'}
+            disc={
+              heroData?.disc ||
+              'Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm’s way to accounting success by reading fresh perspectives & making informed decisions.'
+            }
           />
         </div>
       </Suspense>
 
+      {/* Blog Section */}
       <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Improved Grid Layout for Responsiveness and Visual Appeal */}
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-          {blogs.map((blog) => (
-            <Suspense key={blog.id} fallback={<ComponentLoader height="h-64" message="Loading blog card..." />}>
+          {Array.isArray(blogs) && blogs.length > 0 ? (
+            blogs.map((blog) => (
               <BlogCard
-                id={blog.id}
+                key={blog._id}
+                id={blog._id}
                 title={blog.title}
-                imageUrl={blog.imageUrl}
-                link={blog.link}
-                category={blog.category}
-                date={blog.date}
-                readingTime={blog.readingTime}
+                imageUrl={blog.image}
+                link={`/blog/${blog.slug}`}
+                category={blog.category || 'General'}
+                date={new Date(blog.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+                readingTime={blog.readTime || '5 min read'}
               />
-            </Suspense>
-          ))}
-        </div>
-        
-        {/* Simple Pagination/Load More Placeholder */}
-        <div className="flex justify-center mt-12">
-            <button className="px-8 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-100 transition duration-300 shadow-sm">
-                Load More Articles
-            </button>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 w-full">No blogs found</p>
+          )}
+
+
         </div>
 
+        {/* Load More Button */}
+        <div className="flex justify-center mt-12">
+          <button className="px-8 py-3 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-100 transition duration-300 shadow-sm">
+            Load More Articles
+          </button>
+        </div>
       </section>
     </main>
-  )
-}
+  );
+};
 
-export default page
+export default Page;

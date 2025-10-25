@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { connectDB } from "@/lib/mongodb";
-import {Hero} from "../model/hero";
+import {AboutHero} from "../model/hero";
 import { NextResponse } from "next/server";
 // home section 
 export async function GET() {
   await connectDB();
 
   try {
-    const hero = await Hero.findOne().sort({ createdAt: -1 });
+    const hero = await AboutHero.findOne().sort({ createdAt: -1 });
     if (!hero) return NextResponse.json({ error: "No hero found" }, { status: 404 });
     return NextResponse.json(hero);
   } catch (error) {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
     }
 
-    const hero = new Hero({
+    const hero = new AboutHero({
       title: body.title,
       disc: body.disc,
       image: body.image || "",
@@ -51,7 +51,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Hero ID is required" }, { status: 400 });
     }
 
-    const hero = await Hero.findById(id);
+    const hero = await AboutHero.findById(id);
     if (!hero) return NextResponse.json({ error: "Hero not found" }, { status: 404 });
 
     // Update fields if provided

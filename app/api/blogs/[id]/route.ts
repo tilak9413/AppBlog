@@ -1,14 +1,16 @@
 import { connectDB } from "@/lib/mongodb";
-import Blog from "../../model/blog";
 import { NextResponse } from "next/server";
+import Blog from "../../model/blog";
 
-// GET a single blog by ID
+// GET a single blog
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
-  const id = params.id;
+
+  // Unwrap params
+  const { id } = await params;
 
   try {
     const blog = await Blog.findById(id);
@@ -22,45 +24,31 @@ export async function GET(
   }
 }
 
-// UPDATE a blog
+// PATCH a blog
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
-  const id = params.id;
+  const { id } = await params;
 
   try {
     const body = await req.json();
     const { title, content, excerpt, author, image, tags, slug, published } = body;
 
-    // Check if blog exists
     const blog = await Blog.findById(id);
-    if (!blog) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
-    }
+    if (!blog) return NextResponse.json({ error: "Blog not found" }, { status: 404 });
 
-    // Check if slug is being changed and if it already exists
     if (slug && slug !== blog.slug) {
       const existingBlog = await Blog.findOne({ slug });
       if (existingBlog && existingBlog._id.toString() !== id) {
-        return NextResponse.json({ error: "Blog with this slug already exists" }, { status: 409 });
+        return NextResponse.json({ error: "Slug already exists" }, { status: 409 });
       }
     }
 
-    // Update blog
     const updatedBlog = await Blog.findByIdAndUpdate(
       id,
-      {
-        title,
-        content,
-        excerpt,
-        author,
-        image,
-        tags,
-        slug,
-        published
-      },
+      { title, content, excerpt, author, image, tags, slug, published },
       { new: true, runValidators: true }
     );
 
@@ -74,16 +62,15 @@ export async function PATCH(
 // DELETE a blog
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
-  const id = params.id;
+  const { id } = await params;
 
   try {
     const blog = await Blog.findByIdAndDelete(id);
-    if (!blog) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
-    }
+    if (!blog) return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+
     return NextResponse.json({ message: "Blog deleted successfully" });
   } catch (error) {
     console.error(error);

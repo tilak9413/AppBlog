@@ -8,8 +8,9 @@ import CustomButton from "../ui/customButtom/Button";
 interface Props {
   title: string
   disc: string
+  image:string
 }
-const HeroSection: React.FC<Props> = ({ title, disc }) => {
+const HeroSection: React.FC<Props> = ({ title, disc  , image }) => {
   return (
     <section className="relative flex flex-col-reverse md:flex-row items-center justify-between gap-10 md:gap-20 px-6 md:px-16 py-20 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
       {/* Left side - text content */}
@@ -67,7 +68,7 @@ const HeroSection: React.FC<Props> = ({ title, disc }) => {
         {/* Main illustration */}
         <div className="relative z-10 flex justify-center">
           <Image
-            src="/images/hero-developer.png" // Make sure this image exists in public/images
+            src={image} // Make sure this image exists in public/images
             alt="Developer illustration"
             width={420}
             height={420}

@@ -2,7 +2,7 @@
 // components/BlogCard.tsx
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+// import Image from "next/image";
 
 interface BlogCardProps {
   id: number;
@@ -26,12 +26,12 @@ const BlogCard: React.FC<BlogCardProps> = ({ id, title, imageUrl, link, category
       className="block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105"
     >
       <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 relative overflow-hidden">
-        <Image
+        <img
           src={imageError ? fallbackImage : imageUrl}
           alt={title}
-          fill
+          // fill
           className="object-cover transition-transform duration-300 hover:scale-110"
-          onError={() => setImageError(true)}
+          // onError={() => setImageError(true)}
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
         {/* Gradient overlay for better text readability */}

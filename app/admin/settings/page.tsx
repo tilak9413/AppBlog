@@ -21,8 +21,8 @@ export default function AdminSettings() {
   });
   
   // Password change states
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('admin');
+  const [newPassword, setNewPassword] = useState('admin');
   const [confirmPassword, setConfirmPassword] = useState('');
   
   // Fetch current settings

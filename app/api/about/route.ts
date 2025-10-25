@@ -24,7 +24,7 @@ export async function GET() {
 // POST handler to create about us data
 export async function POST(request: NextRequest) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     const data = await request.json();
     
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 // PUT handler to update about us data
 export async function PUT(request: NextRequest) {
   try {
-    await connectToDatabase();
+    await connectDB();
     
     const data = await request.json();
     

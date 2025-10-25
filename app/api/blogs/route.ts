@@ -2,7 +2,7 @@ import { connectDB } from "@/lib/mongodb";
 import Blog from "../model/blog";
 import { NextResponse } from "next/server";
 
-// GET all blogs
+// GET all blogs or a single blog by slug
 export async function GET(req: Request) {
   await connectDB();
   const url = new URL(req.url);
@@ -13,14 +13,11 @@ export async function GET(req: Request) {
 
   try {
     let query: any = { published: true };
-    
-    if (tag) {
-      query.tags = { $in: [tag] };
-    }
+
+    if (tag) query.tags = { $in: [tag] };
     
     if (slug) {
-      query.slug = slug;
-      const blog = await Blog.findOne(query);
+      const blog = await Blog.findOne({ slug });
       if (!blog) return NextResponse.json({ error: "Blog not found" }, { status: 404 });
       return NextResponse.json(blog);
     }
@@ -30,17 +27,11 @@ export async function GET(req: Request) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    
     const total = await Blog.countDocuments(query);
-    
+
     return NextResponse.json({
       blogs,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
     console.error(error);
@@ -51,7 +42,6 @@ export async function GET(req: Request) {
 // POST new blog
 export async function POST(req: Request) {
   await connectDB();
-
   try {
     const body = await req.json();
     const { title, content, excerpt, author, image, tags, slug, published } = body;
@@ -60,7 +50,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Check if slug already exists
     const existingBlog = await Blog.findOne({ slug });
     if (existingBlog) {
       return NextResponse.json({ error: "Blog with this slug already exists" }, { status: 409 });
@@ -74,7 +63,7 @@ export async function POST(req: Request) {
       image: image || "",
       tags: tags || [],
       slug,
-      published: published !== undefined ? published : true
+      published: published !== undefined ? published : true,
     });
 
     await blog.save();
@@ -82,5 +71,55 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to create blog" }, { status: 500 });
+  }
+}
+
+// PUT update blog by slug
+export async function PUT(req: Request) {
+  await connectDB();
+  try {
+    const body = await req.json();
+    const { slug, ...updateData } = body;
+
+    if (!slug) {
+      return NextResponse.json({ error: "Slug is required to update blog" }, { status: 400 });
+    }
+
+    const updatedBlog = await Blog.findOneAndUpdate({ slug }, updateData, {
+      new: true,
+    });
+
+    if (!updatedBlog) {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedBlog);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to update blog" }, { status: 500 });
+  }
+}
+
+// DELETE blog by slug
+export async function DELETE(req: Request) {
+  await connectDB();
+  try {
+    const url = new URL(req.url);
+    const slug = url.searchParams.get("slug");
+
+    if (!slug) {
+      return NextResponse.json({ error: "Slug is required to delete blog" }, { status: 400 });
+    }
+
+    const deletedBlog = await Blog.findOneAndDelete({ slug });
+
+    if (!deletedBlog) {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Blog deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to delete blog" }, { status: 500 });
   }
 }
