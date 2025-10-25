@@ -1,49 +1,70 @@
 // File: AccountantCard.jsx
 import React from "react";
 
-const AccountantCard = () => {
+interface AccountantCardProps {
+  title: string;
+  description: string;
+  image: string;
+  tags?: string[];
+  buttonText?: string;
+}
+
+const AccountantCard: React.FC<AccountantCardProps> = ({
+  title,
+  description,
+  image,
+  tags = [],
+  buttonText = "Hire Now",
+}) => {
   return (
-    <div className="w-full max-w-6xl ">
+    <div className="w-full">
       {/* Main Card */}
-      <div className="relative bg-white border rounded-[30px] shadow-md flex flex-col md:flex-row items-center md:items-start overflow-hidden">
+      <div className="relative bg-white border rounded-[30px] shadow-md flex flex-col md:flex-row items-center md:items-start overflow-hidden w-full">
         {/* Left Section */}
-        <div className="p-8 md:w-1/2 space-y-6">
+        <div className="p-8 flex-1 space-y-6">
           {/* Tags */}
           <div className="flex flex-wrap gap-3">
-            <span className="bg-green-100 text-green-800 text-sm px-4 py-1 rounded-lg font-medium">
-              10+ years of experience
-            </span>
-            <span className="bg-blue-100 text-blue-800 text-sm px-4 py-1 rounded-lg font-medium">
-              Advance knowledge
-            </span>
-            <span className="bg-red-100 text-red-800 text-sm px-4 py-1 rounded-lg font-medium">
-              Client-focused
-            </span>
+            {tags.length > 0
+              ? tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-blue-100 text-blue-800 text-sm px-4 py-1 rounded-lg font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))
+              : (
+                <>
+                  <span className="bg-green-100 text-green-800 text-sm px-4 py-1 rounded-lg font-medium">
+                    10+ years of experience
+                  </span>
+                  <span className="bg-blue-100 text-blue-800 text-sm px-4 py-1 rounded-lg font-medium">
+                    Advanced knowledge
+                  </span>
+                  <span className="bg-red-100 text-red-800 text-sm px-4 py-1 rounded-lg font-medium">
+                    Client-focused
+                  </span>
+                </>
+              )}
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
-            Senior Accountants
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">{title}</h2>
 
           {/* Description */}
-          <p className="text-gray-600 leading-relaxed">
-            Free up your in-house CPA team for specialized tasks, and leverage
-            the skills of our certified accountants for routine tasks that are
-            super-important. Hire certified senior accountants today.
-          </p>
+          <p className="text-gray-600 leading-relaxed">{description}</p>
 
           {/* Button */}
           <button className="bg-gray-700 text-white px-6 py-2 rounded-lg shadow hover:bg-gray-800 transition">
-            Hire Now
+            {buttonText}
           </button>
         </div>
 
         {/* Right Section */}
-        <div className="relative md:w-1/2 flex justify-center items-center p-6">
+        <div className="relative flex-1 flex justify-center items-center p-6">
           {/* SVG Curve */}
           <svg
-            className="absolute right-0 top-0 w-full h-full md:w-[300px] md:h-[300px]"
+            className="absolute right-0 top-0 w-full h-full"
             viewBox="0 0 300 300"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -58,9 +79,10 @@ const AccountantCard = () => {
 
           {/* Image */}
           <img
-            src="https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732edefdff39f1fc7a861c7_slider_img-1.webp"
-            alt="Accountant"
-            className="relative w-64  object-cover z-10 rounded-lg"
+          style={{width:"250px"}}
+            src={image}
+            alt={title}
+            className="relative w-full max-w-sm object-contain z-10 rounded-lg"
           />
         </div>
       </div>
