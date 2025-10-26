@@ -61,7 +61,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const menuItems: MenuItem[] = [
     { title: 'Dashboard', href: '/admin', icon: <AiOutlineDashboard size={20} /> },
     { title: 'Blogs', href: '/admin/blogs', icon: <AiOutlineRead size={20} /> },
-    { title: 'New Blog', href: '/admin/blogs/new', icon: <AiOutlineFileAdd size={20} /> },
     { title: 'Services', href: '/admin/services', icon: <AiOutlineAppstore size={20} /> },
     { title: 'New Service', href: '/admin/services/new', icon: <AiOutlineFileAdd size={20} /> },
     { title: 'hero sections', href: '/admin/hero', icon: <AiOutlineAppstore size={20} /> },
@@ -92,10 +91,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div
         id="sidebar"
         className={`${isMobileMenuOpen ? 'block' : 'hidden'
-          } md:block w-full md:w-72 bg-gradient-to-b from-indigo-800 to-indigo-900 text-white md:min-h-screen transition-all duration-300 ease-in-out shadow-xl`}
+          } md:block w-full md:w-60 bg-gradient-to-b from-indigo-800 to-indigo-900 text-white md:min-h-screen transition-all duration-300 ease-in-out shadow-xl`}
       >
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-8 hidden md:block text-center">Admin Dashboard</h1>
+          <h1 className="text-1xl font-bold mb-8 hidden md:block text-center">Admin Dashboard</h1>
           <nav>
             <ul className="space-y-3">
               {menuItems.map((item, index) => (
@@ -103,7 +102,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   {item.href ? (
                     <Link
                       href={item.href}
-                      className="flex items-center py-3 px-4 hover:bg-indigo-600 rounded-lg transition-colors"
+                      className="flex items-center py-3 px-4 hover:bg-indigo-600 text-sm rounded-lg transition-colors"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span className="mr-3">{item.icon}</span>
@@ -127,9 +126,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Main content */}
       <div className="flex-1 p-4 md:p-8 overflow-x-hidden bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-xl shadow-md p-6">{children}</div>
-        </div>
+        {children}
       </div>
     </div>
   );

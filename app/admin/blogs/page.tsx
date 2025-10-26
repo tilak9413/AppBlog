@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import NewBlogModal from './new/page';
 
 interface Blog {
   _id: string;
@@ -17,7 +18,7 @@ export default function AdminBlogs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
-
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -72,9 +73,12 @@ export default function AdminBlogs() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Manage Blogs</h1>
-        <Link href="/admin/blogs/new" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Add New Blog
-        </Link>
+          <button
+          onClick={() => setOpen(true)}
+          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        >
+          New Blog
+        </button>
       </div>
 
       {blogs.length === 0 ? (
@@ -127,6 +131,18 @@ export default function AdminBlogs() {
           </table>
         </div>
       )}
+  
+
+      {/* your blogs list here */}
+
+      <NewBlogModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onCreated={() => {
+          // optional: reload data, toast, etc.
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

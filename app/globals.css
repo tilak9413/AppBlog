@@ -59,3 +59,14 @@
   font-weight: 600;
   color: #111827;
 }
+/* CKEditor sizing inside modal */
+.ck-editor__editable_inline {
+  min-height: 220px;
+  max-height: 45vh; /* keep it within modal body */
+  overflow-y: auto;
+}
+
+/* Make CKEditor floating panels/tooltips appear above modal/backdrop */
+.ck-body {
+  z-index: 70 !important;
+}
