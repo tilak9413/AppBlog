@@ -4,17 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { use } from 'react';
 
-export default function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
+export default function ResetPasswordPage({ params }: { params: { token: string } }) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const resolvedParams = use(params);
-  const token = resolvedParams?.token || '';
+  const { token } = params;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,19 +33,6 @@ export default function ResetPasswordPage({ params }: { params: Promise<{ token:
     setLoading(true);
 
     try {
-      console.log("Submitting reset with token:", token);
-      
-      // For testing purposes, handle special tokens directly
-      if (token === "tilak9740@gmail.com" || (token && typeof token === 'string' && token.includes("admin"))) {
-        setSuccess('Your password has been reset successfully (test mode)');
-        
-        // Redirect to login page after 3 seconds
-        setTimeout(() => {
-          router.push('/login');
-        }, 3000);
-        return;
-      }
-      
       const response = await fetch('/api/auth/reset-password', {
         method: 'PUT',
         headers: {
@@ -57,7 +42,6 @@ export default function ResetPasswordPage({ params }: { params: Promise<{ token:
       });
 
       const data = await response.json();
-      console.log("Reset response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to reset password');
@@ -70,7 +54,6 @@ export default function ResetPasswordPage({ params }: { params: Promise<{ token:
         router.push('/login');
       }, 3000);
     } catch (err: any) {
-      console.error("Reset error:", err);
       setError(err.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);

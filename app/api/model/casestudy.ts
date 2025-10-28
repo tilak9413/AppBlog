@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const caseStudy = new mongoose.Schema({
   title: { type: String, required: true },
-  contant :{type:String , require:true}
+  content :{type:String , require:true}
 }, { timestamps: true });
 
 // Correct: avoid reusing Hero model

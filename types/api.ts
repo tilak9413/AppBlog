@@ -1,41 +1,49 @@
-type HeroData = {
-  title: string;
-  disc: string;
-};
 
-// types/service.ts
-export interface ServiceCard {
-  id: string;
-  title: string;
-  description: string;
+export type IdString = string;
+
+export interface HeroSection {
+image?: string;
+title: string;
+description: string;
 }
 
-export interface ServiceCardSection {
-  id: string;
-  sectionTitle: string;
-  sectionDescription: string;
-  cards: ServiceCard[];
+export interface Card {
+id: IdString;
+title: string;
+description: string;
+}
+
+export interface CardSection {
+id: IdString;
+sectionTitle: string;
+sectionDescription?: string;
+cards: Card[];
 }
 
 export interface Service {
-  id: string;
-  categoryId: string;
-  heroSection: {
-    image: string;
-    title: string;
-    description: string;
-  };
-  cardSections: ServiceCardSection[];
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
+id: IdString;
+categoryId: IdString;
+heroSection: HeroSection;
+cardSections: CardSection[];
+content?: string;
+createdAt?: string;
+updatedAt?: string;
 }
 
-export interface ServiceCategory {
-  id: string;
-  name: string;
-  description: string;
-  services: Service[];
-  createdAt: Date;
-  updatedAt: Date;
+export interface Category {
+id: IdString;
+name: string;
+description: string;
+createdAt?: string;
+updatedAt?: string;
+services?: Service[];
+}
+
+export interface ApiList<T> {
+data: T[];
+}
+
+export interface ApiItem<T> {
+data: T;
+message?: string;
 }

@@ -1,72 +1,69 @@
-// models/Service.js
-import mongoose from "mongoose";
+// src/models/service.ts (or wherever your model file is located)
 
-// Service Card Schema (embedded document)
-const ServiceCardSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  icon: { type: String },
-  order: { type: Number, default: 0 }
-});
+import mongoose, { Schema, InferSchemaType, Model } from 'mongoose';
 
-// Service Card Section Schema (embedded document)
-const ServiceCardSectionSchema = new mongoose.Schema({
-  sectionTitle: { type: String, required: true },
-  sectionDescription: { type: String, required: true },
-  order: { type: Number, default: 0 },
-  cards: [ServiceCardSchema]
-});
+// --- Category Schemas ---
 
-// Service Category Schema
-const ServiceCategorySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  slug: { type: String, unique: true },
-  services: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Service' }]
-}, { timestamps: true });
+const CategorySchema = new Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        description: { type: String, required: true },
+    },
+    { timestamps: true, collection: 'categories' } // Explicitly setting collection name for safety
+);
 
-// Generate slug before saving
-ServiceCategorySchema.pre('save', function(next) {
-  if (this.isModified('name')) {
-    this.slug = this.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '') + '-' + Date.now();
-  }
-  next();
-});
+export type CategoryDoc = InferSchemaType<typeof CategorySchema>;
 
-// Main Service Schema
-const ServiceSchema = new mongoose.Schema({
-  categoryId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'ServiceCategory',
-    required: true 
-  },
-  slug: { type: String, unique: true },
-  heroSection: {
-    image: { type: String, required: true },
-    title: { type: String, required: true },
-    description: { type: String, required: true }
-  },
-  cardSections: [ServiceCardSectionSchema],
-  content: { type: String },
-  isActive: { type: Boolean, default: true }
-}, { timestamps: true });
+export const CategoryModel: Model<CategoryDoc> =
+    mongoose.models.Category || mongoose.model<CategoryDoc>('Category', CategorySchema);
 
-// Generate slug before saving
-ServiceSchema.pre('save', function(next) {
-  if (this.isModified('heroSection.title')) {
-    this.slug = this.heroSection?.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '') + '-' + Date.now();
-  }
-  next();
-});
+// --- Service Sub-Schemas ---
 
-export const ServiceCategory = mongoose.models.ServiceCategory || 
-  mongoose.model("ServiceCategory", ServiceCategorySchema);
+const CardSchema = new Schema(
+    {
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+    },
+    { _id: true }
+);
 
-export const Service = mongoose.models.Service || 
-  mongoose.model("Service", ServiceSchema);
+const CardSectionSchema = new Schema(
+    {
+        sectionTitle: { type: String, required: true },
+        sectionDescription: { type: String, default: '' },
+        cards: { type: [CardSchema], default: [] },
+    },
+    { _id: true }
+);
+
+const HeroSectionSchema = new Schema(
+    {
+        image: { type: String, default: '' }, // base64 or URL
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+    },
+    { _id: false }
+);
+
+// --- Service Schema ---
+
+const ServiceSchema = new Schema(
+    {
+        categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
+        slug: { type: String, required: true, unique: true, trim: true },
+        heroSection: { type: HeroSectionSchema, required: true },
+        cardSections: { type: [CardSectionSchema], default: [] },
+        content: { type: String, default: '' },
+    },
+    { 
+        timestamps: true,
+        // 💡 CRITICAL FIX/SAFETY: Explicitly defining the collection name 
+        // to ensure Mongoose finds your documents.
+        collection: 'services' 
+    }
+);
+
+export type ServiceDoc = InferSchemaType<typeof ServiceSchema>;
+
+export const ServiceModel: Model<ServiceDoc> =
+    mongoose.models.Service || mongoose.model<ServiceDoc>('Service', ServiceSchema);

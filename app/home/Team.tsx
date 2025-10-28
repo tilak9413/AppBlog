@@ -80,7 +80,7 @@ const tabsData = roles.map((role) => ({
       {/* Tabs Section */}
       <div className="mb-12">
         <Tabs
-          tabs={tabsData}
+          tabs={tabsData || []}
           defaultActive={tabsData[0]?.value || ""}
           onChange={(value) => console.log("Selected Tab:", value)}
         />

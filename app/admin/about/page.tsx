@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface TeamMember {
@@ -169,58 +167,50 @@ export default function AboutAdmin() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700">Description</label>
-            <div className="mt-1 border border-gray-300 rounded-md">
-              <CKEditor
-                editor={ClassicEditor}
-                data={aboutData.description}
-                onChange={(event, editor) => {
-                  const data = editor.getData();
-                  setAboutData(prev => ({ ...prev, description: data }));
-                }}
-              />
-            </div>
+            <textarea
+              name="description"
+              value={aboutData.description}
+              onChange={handleInputChange}
+              rows={4}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              required
+            />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700">Mission</label>
-            <div className="mt-1 border border-gray-300 rounded-md">
-              <CKEditor
-                editor={ClassicEditor}
-                data={aboutData.mission}
-                onChange={(event, editor) => {
-                  const data = editor.getData();
-                  setAboutData(prev => ({ ...prev, mission: data }));
-                }}
-              />
-            </div>
+            <textarea
+              name="mission"
+              value={aboutData.mission}
+              onChange={handleInputChange}
+              rows={3}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              required
+            />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700">Vision</label>
-            <div className="mt-1 border border-gray-300 rounded-md">
-              <CKEditor
-                editor={ClassicEditor}
-                data={aboutData.vision}
-                onChange={(event, editor) => {
-                  const data = editor.getData();
-                  setAboutData(prev => ({ ...prev, vision: data }));
-                }}
-              />
-            </div>
+            <textarea
+              name="vision"
+              value={aboutData.vision}
+              onChange={handleInputChange}
+              rows={3}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              required
+            />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700">Company History</label>
-            <div className="mt-1 border border-gray-300 rounded-md">
-              <CKEditor
-                editor={ClassicEditor}
-                data={aboutData.companyHistory}
-                onChange={(event, editor) => {
-                  const data = editor.getData();
-                  setAboutData(prev => ({ ...prev, companyHistory: data }));
-                }}
-              />
-            </div>
+            <textarea
+              name="companyHistory"
+              value={aboutData.companyHistory}
+              onChange={handleInputChange}
+              rows={5}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              required
+            />
           </div>
         </div>
         
@@ -273,16 +263,13 @@ export default function AboutAdmin() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700">Bio</label>
-                <div className="mt-1 border border-gray-300 rounded-md">
-                  <CKEditor
-                    editor={ClassicEditor}
-                    data={member.bio}
-                    onChange={(event, editor) => {
-                      const data = editor.getData();
-                      handleTeamMemberChange(index, 'bio', data);
-                    }}
-                  />
-                </div>
+                <textarea
+                  value={member.bio}
+                  onChange={(e) => handleTeamMemberChange(index, 'bio', e.target.value)}
+                  rows={3}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
               </div>
               
               <div>
