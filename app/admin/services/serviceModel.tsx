@@ -60,7 +60,8 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
   useEffect(() => {
     if (isOpen) {
       axios.get('/api/service/categories').then((res) => {
-        setCategories(res.data.data || []);
+        console.log(res.data)
+        setCategories(res.data || []);
       });
     }
   }, [isOpen]);
@@ -128,6 +129,7 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
                         </option>
                       ))}
                     </Field>
+
                     <ErrorMessage name="categoryId" component="p" className="text-red-500 text-sm" />
                   </div>
 

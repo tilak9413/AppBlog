@@ -67,3 +67,5 @@ export type ServiceDoc = InferSchemaType<typeof ServiceSchema>;
 
 export const ServiceModel: Model<ServiceDoc> =
     mongoose.models.Service || mongoose.model<ServiceDoc>('Service', ServiceSchema);
+
+    
