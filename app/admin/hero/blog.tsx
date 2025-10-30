@@ -39,7 +39,16 @@ export default function Blog() {
     fetchHeroes();
   }, []);
 
-  // Handle form submission for both create and update
+  // Convert image to Base64
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+
+  // Handle form submission
   const handleSubmit = async (values: any, { resetForm }: any) => {
     try {
       const payload = {
@@ -51,14 +60,12 @@ export default function Blog() {
 
       let res;
       if (editingHero) {
-        // Update existing
         res = await fetch('/api/heroblog', {
           method: 'PATCH',
           body: JSON.stringify({ id: editingHero._id, ...payload }),
           headers: { 'Content-Type': 'application/json' },
         });
       } else {
-        // Create new
         res = await fetch('/api/heroblog', {
           method: 'POST',
           body: JSON.stringify(payload),
@@ -164,11 +171,12 @@ export default function Blog() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(event) => {
+                onChange={async (event) => {
                   const file = event.currentTarget.files?.[0];
                   if (file) {
-                    setFieldValue('image', file);
-                    setImagePreview(URL.createObjectURL(file));
+                    const base64 = await toBase64(file);
+                    setFieldValue('image', base64);
+                    setImagePreview(base64);
                   }
                 }}
                 className="w-full border border-gray-300 p-2 rounded-md"

@@ -1,55 +1,81 @@
 'use client';
-// components/BlogCard.tsx
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-// import Image from "next/image";
 
 interface BlogCardProps {
-  id: number;
+  slug: string;
   title: string;
   imageUrl: string;
-  link: string;
+  link?: string;
   category?: string;
   date?: string;
   readingTime?: string;
 }
 
-const BlogCard: React.FC<BlogCardProps> = ({ id, title, imageUrl, link, category, date, readingTime }) => {
-  const [imageError, setImageError] = useState(false);
-  
-  // Fallback image URL - using a reliable accounting/finance themed image
-  const fallbackImage = "https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80";
-
+const BlogCard: React.FC<BlogCardProps> = ({
+  slug,
+  title,
+  imageUrl,
+  link,
+  category,
+  date,
+  readingTime,
+}) => {
   return (
     <Link
-      href={`/blog/${id}`}
-      className="block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105"
+      href={`/blogs/${slug}`}
+      className="group block bg-white rounded-2xl shadow-md hover:shadow-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:-translate-y-1"
     >
-      <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 relative overflow-hidden">
+      {/* === Image Section === */}
+      <div className="relative w-full h-56 sm:h-48 md:h-60 overflow-hidden">
         <img
-          src={imageError ? fallbackImage : imageUrl}
+          src={imageUrl}
           alt={title}
-          // fill
-          className="object-cover transition-transform duration-300 hover:scale-110"
-          // onError={() => setImageError(true)}
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src =
+              "/fallback-image.jpg"; // optional fallback
+          }}
         />
-        {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
-      </div>
-      <div className="p-4">
+        {/* Overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+        {/* Category badge on image */}
         {category && (
-          <div className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-medium mb-3">
+          <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow-md">
             {category}
-          </div>
+          </span>
         )}
-        <h3 className="text-gray-700 font-medium text-lg md:text-base line-clamp-2 hover:text-blue-600 transition-colors duration-200 mb-3 font-lexend">
+      </div>
+
+      {/* === Content Section === */}
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2 group-hover:text-blue-600 line-clamp-2 font-lexend">
           {title}
         </h3>
+
         {(date || readingTime) && (
           <div className="flex items-center justify-between text-xs text-gray-500">
             {date && <span>{date}</span>}
-            {readingTime && <span>{readingTime}</span>}
+            {readingTime && (
+              <span className="flex items-center gap-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6l4 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {readingTime}
+              </span>
+            )}
           </div>
         )}
       </div>

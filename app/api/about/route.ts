@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import About from '../model/about';
+import About from '@/app/api/model/about'; // ✅ make sure this path matches your folder
 
-// GET handler to retrieve about us data
+// ==================== GET ====================
 export async function GET() {
   try {
     await connectDB();
-    
-    // Find the about us data (typically there's only one document)
+
+    // Find the most recent about document
     const aboutData = await About.findOne({}).sort({ updatedAt: -1 });
-    
+
     if (!aboutData) {
       return NextResponse.json({ message: 'About us data not found' }, { status: 404 });
     }
-    
+
     return NextResponse.json(aboutData);
   } catch (error) {
     console.error('Error fetching about us data:', error);
@@ -21,17 +21,22 @@ export async function GET() {
   }
 }
 
-// POST handler to create about us data
+// ==================== POST ====================
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const data = await request.json();
-    
-    // Create new about us data
+
+    // Prevent duplicates (keep only one About document)
+    const existing = await About.findOne({});
+    if (existing) {
+      return NextResponse.json({ message: 'About data already exists. Use PUT to update.' }, { status: 400 });
+    }
+
     const newAbout = new About(data);
     await newAbout.save();
-    
+
     return NextResponse.json(newAbout, { status: 201 });
   } catch (error) {
     console.error('Error creating about us data:', error);
@@ -39,26 +44,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT handler to update about us data
+// ==================== PUT ====================
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
-    
+
     const data = await request.json();
-    
-    // Find and update the about us data
-    const aboutData = await About.findOneAndUpdate({}, data, { 
+
+    // Update existing document or create if not found
+    const aboutData = await About.findOneAndUpdate({}, data, {
       new: true,
-      runValidators: true
+      upsert: true, // ✅ Creates if none exists
+      runValidators: true,
     });
-    
-    if (!aboutData) {
-      // If no document exists, create one
-      const newAbout = new About(data);
-      await newAbout.save();
-      return NextResponse.json(newAbout, { status: 201 });
-    }
-    
+
     return NextResponse.json(aboutData);
   } catch (error) {
     console.error('Error updating about us data:', error);
@@ -66,25 +65,19 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE handler to delete about us data
+// ==================== DELETE ====================
 export async function DELETE() {
   try {
-    await connectToDatabase();
-    
-    // Find and delete the about us data
-    const deletedAbout = await About.findOneAndDelete({});
-    
-    if (!deletedAbout) {
+    await connectDB();
+
+    const deleted = await About.findOneAndDelete({});
+    if (!deleted) {
       return NextResponse.json({ message: 'About us data not found' }, { status: 404 });
     }
-    
+
     return NextResponse.json({ message: 'About us data deleted successfully' });
   } catch (error) {
     console.error('Error deleting about us data:', error);
     return NextResponse.json({ message: 'Failed to delete about us data' }, { status: 500 });
   }
-}
-
-function connectToDatabase() {
-  throw new Error('Function not implemented.');
 }

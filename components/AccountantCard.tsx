@@ -17,9 +17,9 @@ const AccountantCard: React.FC<AccountantCardProps> = ({
   buttonText = "Hire Now",
 }) => {
   return (
-    <div className="w-full">
+    <div className="w-full ">
       {/* Main Card */}
-      <div className="relative bg-white border rounded-[30px] shadow-md flex flex-col md:flex-row items-center md:items-start overflow-hidden w-full">
+           <div className="relative bg-white border rounded-[30px] shadow-md flex flex-col md:flex-row items-center md:items-start overflow-hidden w-full mt-4 min-h-[380px] max-h-[300px]">
         {/* Left Section */}
         <div className="p-8 flex-1 space-y-6">
           {/* Tags */}
@@ -52,7 +52,8 @@ const AccountantCard: React.FC<AccountantCardProps> = ({
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">{title}</h2>
 
           {/* Description */}
-          <p className="text-gray-600 leading-relaxed">{description}</p>
+          <p className="text-gray-600 text-sm sm:text-base leading-relaxed line-clamp-3">{description}
+          </p>
 
           {/* Button */}
           <button className="bg-gray-700 text-white px-6 py-2 rounded-lg shadow hover:bg-gray-800 transition">

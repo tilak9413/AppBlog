@@ -55,7 +55,7 @@ const tabsData = roles.map((role) => ({
   label: role.tabName, // Tab label from API
   value: role.tabName.toLowerCase().replace(/\s+/g, "-"), // normalized value for Tabs
   component: (
-    <div className="">
+    <div style={{marginBottom:"20px"}}>
       {role.cards.map((card, idx) => (
         <AccountantCard key={idx} {...card} />
       ))}

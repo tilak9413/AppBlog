@@ -20,7 +20,7 @@ interface Blog {
 }
 
 export default function BlogPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const router = useRouter();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ export default function BlogPage() {
     const fetchBlog = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/blogs/${id}`);
+        const res = await fetch(`/api/blogs?slug=${slug}`);
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.error || 'Failed to fetch blog');
@@ -45,7 +45,7 @@ export default function BlogPage() {
     };
 
     fetchBlog();
-  }, [id]);
+  }, [slug]);
 
   if (loading) {
     return (

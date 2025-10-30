@@ -1,12 +1,24 @@
 import { connectDB } from "@/lib/mongodb";
 import Blog from "../model/blog";
 import { NextResponse } from "next/server";
+
 export async function GET(req: Request) {
-  await connectDB();
-
   try {
-    const blogs = await Blog.find().sort({ createdAt: -1 });
+    await connectDB();
+    const { searchParams } = new URL(req.url);
+    const slug = searchParams.get('slug');
 
+    // If ?slug=... is passed → return one blog
+    if (slug) {
+      const blog = await Blog.findOne({ slug }).lean();
+      if (!blog) {
+        return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+      }
+      return NextResponse.json(blog);
+    }
+
+    // Otherwise → return all blogs
+    const blogs = await Blog.find().sort({ createdAt: -1 }).lean();
     if (!blogs || blogs.length === 0) {
       return NextResponse.json({ error: "No blogs found" }, { status: 404 });
     }
@@ -20,6 +32,7 @@ export async function GET(req: Request) {
     );
   }
 }
+
 
 // POST new blog
 export async function POST(req: Request) {

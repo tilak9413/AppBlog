@@ -1,350 +1,185 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import AboutFormModal from './AboutFormModal';
 
 interface TeamMember {
-  name: string;
-  position: string;
-  bio: string;
-  image: string;
+    name: string;
+    position: string;
+    bio: string;
+    image: string;
 }
 
 interface Value {
-  title: string;
-  description: string;
+    title: string;
+    description: string;
 }
 
 interface AboutData {
-  _id?: string;
-  title: string;
-  description: string;
-  mission: string;
-  vision: string;
-  team: TeamMember[];
-  companyHistory: string;
-  values: Value[];
+    _id?: string;
+    title: string;
+    description: string;
+    mission: string;
+    vision: string;
+    companyHistory: string;
+    team: TeamMember[];
+    values: Value[];
+    updatedAt?: string;
 }
 
-export default function AboutAdmin() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [aboutData, setAboutData] = useState<AboutData>({
-    title: '',
-    description: '',
-    mission: '',
-    vision: '',
-    team: [{ name: '', position: '', bio: '', image: '' }],
-    companyHistory: '',
-    values: [{ title: '', description: '' }]
-  });
-  const [error, setError] = useState('');
+export default function AboutAdminPage() {
+    const [aboutData, setAboutData] = useState<AboutData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchAboutData = async () => {
-      try {
-        const response = await fetch('/api/about');
-        if (response.ok) {
-          const data = await response.json();
-          setAboutData(data);
-        } else {
-          // If no data exists yet, we'll use the default empty state
-          console.log('No about data found, using default empty state');
+    // === Fetch About Data ===
+    const fetchAbout = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/about');
+            if (res.ok) {
+                const data = await res.json();
+                setAboutData(data);
+            } else {
+                setAboutData(null);
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Failed to load About Us data');
+        } finally {
+            setLoading(false);
         }
-      } catch (err) {
-        console.error('Error fetching about data:', err);
-        setError('Failed to load about data');
-      } finally {
-        setLoading(false);
-      }
     };
 
-    fetchAboutData();
-  }, []);
+    useEffect(() => {
+        fetchAbout();
+    }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setAboutData({ ...aboutData, [name]: value });
-  };
+    // === Delete About Data ===
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to delete the About Us data?')) return;
 
-  const handleTeamMemberChange = (index: number, field: keyof TeamMember, value: string) => {
-    const updatedTeam = [...aboutData.team];
-    updatedTeam[index] = { ...updatedTeam[index], [field]: value };
-    setAboutData({ ...aboutData, team: updatedTeam });
-  };
+        try {
+            const res = await fetch('/api/about', { method: 'DELETE' });
+            if (res.ok) {
+                alert('About Us data deleted successfully.');
+                setAboutData(null);
+            } else {
+                alert('Failed to delete data.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error deleting data.');
+        }
+    };
 
-  const handleValueChange = (index: number, field: keyof Value, value: string) => {
-    const updatedValues = [...aboutData.values];
-    updatedValues[index] = { ...updatedValues[index], [field]: value };
-    setAboutData({ ...aboutData, values: updatedValues });
-  };
+    if (loading) return <LoadingSpinner />;
 
-  const addTeamMember = () => {
-    setAboutData({
-      ...aboutData,
-      team: [...aboutData.team, { name: '', position: '', bio: '', image: '' }]
-    });
-  };
-
-  const removeTeamMember = (index: number) => {
-    const updatedTeam = aboutData.team.filter((_, i) => i !== index);
-    setAboutData({ ...aboutData, team: updatedTeam });
-  };
-
-  const addValue = () => {
-    setAboutData({
-      ...aboutData,
-      values: [...aboutData.values, { title: '', description: '' }]
-    });
-  };
-
-  const removeValue = (index: number) => {
-    const updatedValues = aboutData.values.filter((_, i) => i !== index);
-    setAboutData({ ...aboutData, values: updatedValues });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setError('');
-
-    try {
-      const method = aboutData._id ? 'PUT' : 'POST';
-      const response = await fetch('/api/about', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(aboutData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save about data');
-      }
-
-      const savedData = await response.json();
-      setAboutData(savedData);
-      alert('About data saved successfully!');
-    } catch (err) {
-      console.error('Error saving about data:', err);
-      setError('Failed to save about data');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Manage About Us Page</h1>
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Basic Information</h2>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={aboutData.title}
-              onChange={handleInputChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              name="description"
-              value={aboutData.description}
-              onChange={handleInputChange}
-              rows={4}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Mission</label>
-            <textarea
-              name="mission"
-              value={aboutData.mission}
-              onChange={handleInputChange}
-              rows={3}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Vision</label>
-            <textarea
-              name="vision"
-              value={aboutData.vision}
-              onChange={handleInputChange}
-              rows={3}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Company History</label>
-            <textarea
-              name="companyHistory"
-              value={aboutData.companyHistory}
-              onChange={handleInputChange}
-              rows={5}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Team Members</h2>
-            <button
-              type="button"
-              onClick={addTeamMember}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Add Team Member
-            </button>
-          </div>
-          
-          {aboutData.team.map((member, index) => (
-            <div key={index} className="p-4 border border-gray-300 rounded-md space-y-3">
-              <div className="flex justify-between">
-                <h3 className="font-medium">Team Member {index + 1}</h3>
+    return (
+        <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">About Us Admin Panel</h1>
                 <button
-                  type="button"
-                  onClick={() => removeTeamMember(index)}
-                  className="text-red-600 hover:text-red-800"
+                    onClick={() => setOpen(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                 >
-                  Remove
+                    {aboutData ? 'Edit Data' : 'Create New'}
                 </button>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input
-                  type="text"
-                  value={member.name}
-                  onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Position</label>
-                <input
-                  type="text"
-                  value={member.position}
-                  onChange={(e) => handleTeamMemberChange(index, 'position', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Bio</label>
-                <textarea
-                  value={member.bio}
-                  onChange={(e) => handleTeamMemberChange(index, 'bio', e.target.value)}
-                  rows={3}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Image URL</label>
-                <input
-                  type="text"
-                  value={member.image}
-                  onChange={(e) => handleTeamMemberChange(index, 'image', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                />
-              </div>
             </div>
-          ))}
+
+            {error && (
+                <div className="bg-red-100 text-red-800 p-4 rounded mb-4">{error}</div>
+            )}
+
+            {!aboutData ? (
+                <div className="text-gray-500 italic">No About Us data available.</div>
+            ) : (
+                <div className="space-y-6">
+                    {/* === Basic Info Card === */}
+                    <div className="border rounded-lg shadow p-6 bg-white">
+                        <h2 className="text-xl font-semibold mb-2">{aboutData.title}</h2>
+                        <p className="text-gray-700 mb-3">{aboutData.description}</p>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <h3 className="font-semibold text-gray-800">Mission</h3>
+                                <p className="text-gray-600">{aboutData.mission}</p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-800">Vision</h3>
+                                <p className="text-gray-600">{aboutData.vision}</p>
+                            </div>
+                        </div>
+                        <div className="mt-4">
+                            <h3 className="font-semibold text-gray-800">Company History</h3>
+                            <div
+                                className="prose max-w-none text-gray-700"
+                                dangerouslySetInnerHTML={{ __html: aboutData.companyHistory }}
+                            />
+
+                        </div>
+                    </div>
+
+                    {/* === Team Members === */}
+                    <div className="border rounded-lg shadow p-6 bg-white">
+                        <h2 className="text-xl font-semibold mb-4">Team Members</h2>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {aboutData.team.map((member, i) => (
+                                <div
+                                    key={i}
+                                    className="p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+                                >
+                                    <img
+                                        src={member.image || '/default-avatar.png'}
+                                        alt={member.name}
+                                        className="w-full h-40 object-cover rounded-md mb-3"
+                                    />
+                                    <h3 className="font-semibold">{member.name}</h3>
+                                    <p className="text-sm text-gray-600">{member.position}</p>
+                                    <p className="text-gray-500 text-sm mt-2">{member.bio}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* === Values === */}
+                    <div className="border rounded-lg shadow p-6 bg-white">
+                        <h2 className="text-xl font-semibold mb-4">Company Values</h2>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            {aboutData.values.map((v, i) => (
+                                <div
+                                    key={i}
+                                    className="p-4 border rounded-md bg-gray-50 hover:bg-gray-100"
+                                >
+                                    <h3 className="font-semibold text-gray-800">{v.title}</h3>
+                                    <p className="text-gray-600">{v.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* === Actions === */}
+                    <div className="flex justify-end space-x-3">
+                        <button
+                            onClick={() => setOpen(true)}
+                            className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* === Modal for Edit/Create === */}
+            <AboutFormModal
+            />
         </div>
-        
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Company Values</h2>
-            <button
-              type="button"
-              onClick={addValue}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Add Value
-            </button>
-          </div>
-          
-          {aboutData.values.map((value, index) => (
-            <div key={index} className="p-4 border border-gray-300 rounded-md space-y-3">
-              <div className="flex justify-between">
-                <h3 className="font-medium">Value {index + 1}</h3>
-                <button
-                  type="button"
-                  onClick={() => removeValue(index)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  Remove
-                </button>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
-                <input
-                  type="text"
-                  value={value.title}
-                  onChange={(e) => handleValueChange(index, 'title', e.target.value)}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea
-                  value={value.description}
-                  onChange={(e) => handleValueChange(index, 'description', e.target.value)}
-                  rows={3}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  required
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400"
-          >
-            {saving ? 'Saving...' : 'Save About Us Data'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+    );
 }

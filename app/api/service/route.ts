@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       }
       query.categoryId = categoryId;
     }
-
+    
     const services = await ServiceModel.find(query).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ data: services });
   } catch (err: any) {
