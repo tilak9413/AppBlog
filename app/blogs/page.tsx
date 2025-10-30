@@ -63,6 +63,7 @@ const Page = () => {
               heroData?.disc ||
               'Dive into a world of knowledge with our curated accounting blogs. From tips and tricks to in-depth guides, discover your firm’s way to accounting success by reading fresh perspectives & making informed decisions.'
             }
+            image={heroData?.image}
           />
         </div>
       </Suspense>
