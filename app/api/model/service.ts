@@ -49,7 +49,7 @@ const HeroSectionSchema = new Schema(
 
 const ServiceSchema = new Schema(
     {
-        categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
+        categoryId: { type: String, ref: 'Category', required: true },
         slug: { type: String, required: true, unique: true, trim: true },
         heroSection: { type: HeroSectionSchema, required: true },
         cardSections: { type: [CardSectionSchema], default: [] },

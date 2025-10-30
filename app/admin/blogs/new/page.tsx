@@ -6,6 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Select from 'react-select';
 import { AnimatePresence, motion } from 'framer-motion';
+import axios from 'axios';
 import ComponentLoader from '@/components/ComponentLoader';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
@@ -13,6 +14,7 @@ type NewBlogModalProps = {
   open: boolean;
   onClose: () => void;
   onCreated?: () => void;
+  editData?: any; // if editing an existing blog
 };
 
 const BlogSchema = Yup.object().shape({
@@ -31,7 +33,7 @@ const statusOptions = [
   { value: false, label: 'Draft' },
 ];
 
-export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalProps) {
+export default function NewBlogModal({ open, onClose, onCreated, editData }: NewBlogModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -39,6 +41,7 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
 
   useEffect(() => setMounted(true), []);
 
+  // Close modal with ESC key
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -65,34 +68,52 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setFieldValue('image', reader.result); // base64 string
+      setFieldValue('image', reader.result);
     };
     reader.readAsDataURL(file);
   };
 
+  // ✅ Handle Create or Update
   const handleSubmit = async (values: any) => {
     setLoading(true);
     setError('');
 
     try {
       const tagsArray = values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [];
-      const response = await fetch('/api/blogs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, tags: tagsArray }),
-      });
+      const payload = { ...values, tags: tagsArray };
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to create blog');
+      if (editData?._id) {
+        // ✅ PUT: Update existing blog
+        await axios.put('/api/blogs', { id: editData._id, ...payload });
+      } else {
+        // ✅ POST: Create new blog
+        await axios.post('/api/blogs', payload);
       }
 
       onCreated?.();
       router.refresh();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'An error occurred while creating the blog');
+      setError(err.response?.data?.error || 'An error occurred while saving the blog');
       console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Delete blog
+  const handleDelete = async () => {
+    if (!editData?._id) return;
+    if (!confirm('Are you sure you want to delete this blog?')) return;
+
+    try {
+      setLoading(true);
+      await axios.delete(`/api/blogs?id=${editData._id}`);
+      onCreated?.();
+      onClose();
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to delete blog');
     } finally {
       setLoading(false);
     }
@@ -108,7 +129,6 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
         >
-          {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/50"
             onClick={onClose}
@@ -118,7 +138,6 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
             transition={{ duration: 0.18 }}
           />
 
-          {/* Modal container */}
           <div className="relative z-[55] flex min-h-full items-center justify-center p-4">
             <motion.div
               role="dialog"
@@ -131,10 +150,10 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
               exit={{ opacity: 0, y: 24, scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 380, damping: 28, mass: 0.9 }}
             >
-              {/* Header (fixed) */}
+              {/* Header */}
               <div className="shrink-0 flex items-center justify-between border-b px-6 py-4">
                 <h2 id="new-blog-title" className="text-xl font-semibold">
-                  Create New Blog
+                  {editData ? 'Edit Blog' : 'Create New Blog'}
                 </h2>
                 <button
                   type="button"
@@ -146,7 +165,7 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                 </button>
               </div>
 
-              {/* Body (scrollable) */}
+              {/* Body */}
               <div className="flex-1 overflow-y-auto p-6">
                 {error && (
                   <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
@@ -156,20 +175,21 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
 
                 <Formik
                   initialValues={{
-                    title: '',
-                    slug: '',
-                    excerpt: '',
-                    content: '',
-                    author: '',
-                    image: '',
-                    tags: '',
-                    published: true,
+                    title: editData?.title || '',
+                    slug: editData?.slug || '',
+                    excerpt: editData?.excerpt || '',
+                    content: editData?.content || '',
+                    author: editData?.author || '',
+                    image: editData?.image || '',
+                    tags: editData?.tags?.join(', ') || '',
+                    published: editData?.published ?? true,
                   }}
                   validationSchema={BlogSchema}
                   onSubmit={handleSubmit}
+                  enableReinitialize
                 >
                   {({ values, setFieldValue }) => (
-                    <Form id="new-blog-form" className="space-y-4">
+                    <Form id="blog-form" className="space-y-4">
                       {/* Title */}
                       <div>
                         <label className="mb-1 block font-medium text-gray-700">Title</label>
@@ -177,9 +197,10 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                           name="title"
                           type="text"
                           onBlur={() => {
-                            if (!values.slug) setFieldValue('slug', generateSlug(values.title));
+                            if (!values.slug)
+                              setFieldValue('slug', generateSlug(values.title));
                           }}
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-200"
                         />
                         <ErrorMessage name="title" component="div" className="mt-1 text-sm text-red-600" />
                       </div>
@@ -191,12 +212,14 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                           <Field
                             name="slug"
                             type="text"
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-200"
                           />
                           <button
                             type="button"
-                            onClick={() => setFieldValue('slug', generateSlug(values.title))}
-                            className="rounded-md bg-gray-200 px-3 py-2 text-sm font-medium hover:bg-gray-300"
+                            onClick={() =>
+                              setFieldValue('slug', generateSlug(values.title))
+                            }
+                            className="rounded-md bg-gray-200 px-3 py-2 text-sm hover:bg-gray-300"
                           >
                             Generate
                           </button>
@@ -211,7 +234,7 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                           as="textarea"
                           name="excerpt"
                           rows={2}
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-200"
                         />
                         <ErrorMessage name="excerpt" component="div" className="mt-1 text-sm text-red-600" />
                       </div>
@@ -223,7 +246,6 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                           <RichTextEditor
                             value={values.content}
                             onChange={(html: string) => setFieldValue('content', html)}
-                            onBlur={() => setFieldValue('content', values.content)}
                             placeholder="Write your post..."
                           />
                         </div>
@@ -236,12 +258,12 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                         <Field
                           name="author"
                           type="text"
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-200"
                         />
                         <ErrorMessage name="author" component="div" className="mt-1 text-sm text-red-600" />
                       </div>
 
-                      {/* Image Upload */}
+                      {/* Image */}
                       <div>
                         <label className="mb-1 block font-medium text-gray-700">Image</label>
                         <input
@@ -251,26 +273,24 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                           className="w-full text-sm"
                         />
                         {values.image && (
-                          <img
-                            src={values.image}
-                            alt="preview"
-                            className="mt-2 h-32 w-48 rounded object-cover"
-                          />
+                          <img src={values.image} alt="preview" className="mt-2 h-32 w-48 rounded object-cover" />
                         )}
                       </div>
 
                       {/* Tags */}
                       <div>
-                        <label className="mb-1 block font-medium text-gray-700">Tags (comma separated)</label>
+                        <label className="mb-1 block font-medium text-gray-700">
+                          Tags (comma separated)
+                        </label>
                         <Field
                           name="tags"
                           type="text"
                           placeholder="tag1, tag2, tag3"
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-200"
                         />
                       </div>
 
-                      {/* Status using react-select */}
+                      {/* Status */}
                       <div>
                         <label className="mb-1 block font-medium text-gray-700">Status</label>
                         <Select
@@ -290,8 +310,8 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                 </Formik>
               </div>
 
-              {/* Footer (fixed) */}
-              <div className="shrink-0 border-t px-6 py-4 flex justify-end gap-2">
+              {/* Footer */}
+              <div className="shrink-0 border-t px-6 py-4 flex justify-between">
                 <button
                   type="button"
                   onClick={onClose}
@@ -299,14 +319,34 @@ export default function NewBlogModal({ open, onClose, onCreated }: NewBlogModalP
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  form="new-blog-form"
-                  disabled={loading}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {loading ? <ComponentLoader height="h-5" message="Creating..." /> : 'Create Blog'}
-                </button>
+
+                <div className="flex gap-2">
+                  {editData && (
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      disabled={loading}
+                      className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-60"
+                    >
+                      Delete
+                    </button>
+                  )}
+
+                  <button
+                    type="submit"
+                    form="blog-form"
+                    disabled={loading}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <ComponentLoader height="h-5" message={editData ? 'Updating...' : 'Creating...'} />
+                    ) : editData ? (
+                      'Update Blog'
+                    ) : (
+                      'Create Blog'
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

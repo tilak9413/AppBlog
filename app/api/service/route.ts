@@ -53,8 +53,6 @@ export async function POST(req: Request) {
     const payload = await req.json();
 
     const { categoryId, heroSection, cardSections = [], content = '' } = payload || {};
-    // console.log(categoryId); // Removed console.log for cleaner code
-
     if (!categoryId || !heroSection?.title || !heroSection?.description) {
       return NextResponse.json(
         { error: 'categoryId, heroSection.title, heroSection.description are required' },
@@ -64,14 +62,6 @@ export async function POST(req: Request) {
 
     // ✅ FIX 2: Create the required slug from the heroSection.title
     const slug = createSlug(heroSection.title);
-
-    // ✅ OPTIMIZATION: Ensure the categoryId is valid before proceeding
-    if (!Types.ObjectId.isValid(categoryId)) {
-      return NextResponse.json(
-        { error: 'Invalid categoryId format' },
-        { status: 400 }
-      );
-    }
 
     const payloadDoc = {
       categoryId,
@@ -89,7 +79,7 @@ export async function POST(req: Request) {
     };
 
     const created = await ServiceModel.create(payloadDoc);
-    return NextResponse.json({ data: created }, { status: 201 }); // Use 201 for resource creation
+    return NextResponse.json({ data: created }, { status: 201 });
   } catch (err: any) {
     console.error('POST Service Error:', err.message);
     return NextResponse.json(
@@ -99,60 +89,78 @@ export async function POST(req: Request) {
   }
 }
 
+// --- Helper function for update logic (used by both PUT and PATCH) ---
+async function updateService(req: Request) {
+  await connectDB();
+  const payload = await req.json();
+  const { id, categoryId, heroSection, cardSections = [], content = '' } = payload || {};
+
+  if (!id) {
+    return NextResponse.json({ error: 'Service ID is required' }, { status: 400 });
+  }
+
+  // Add validation for both ID fields
+  if (!Types.ObjectId.isValid(id) || (categoryId && !Types.ObjectId.isValid(categoryId))) {
+    return NextResponse.json(
+      { error: 'Invalid ID format for service or category' },
+      { status: 400 }
+    );
+  }
+
+  const existingService = await ServiceModel.findById(id);
+  if (!existingService) {
+    return NextResponse.json({ error: 'Service not found' }, { status: 404 });
+  }
+
+  // ✅ ADDED: If heroSection is being updated, generate a new slug
+  let slugUpdate = {};
+  if (heroSection && heroSection.title) {
+    slugUpdate = { slug: createSlug(heroSection.title) };
+  }
+
+  const updatedData = {
+    ...(categoryId && { categoryId }),
+    ...(heroSection && { heroSection }),
+    ...slugUpdate, // <-- ADDED: Update slug if title is changed
+    cardSections: (cardSections || []).map((cs: any) => ({
+      sectionTitle: cs.sectionTitle,
+      sectionDescription: cs.sectionDescription || '',
+      cards: (cs.cards || []).map((c: any) => ({
+        title: c.title,
+        description: c.description,
+      })),
+    })),
+    ...(content !== undefined && { content }),
+  };
+
+  const updatedService = await ServiceModel.findByIdAndUpdate(id, updatedData, {
+    new: true,
+    runValidators: true, // Ensure validation runs on updates
+  });
+
+  return NextResponse.json({
+    message: 'Service updated successfully',
+    data: updatedService,
+  });
+}
+
+// --- PUT (Update Service) ---
+export async function PUT(req: Request) {
+  try {
+    return await updateService(req);
+  } catch (error: any) {
+    console.error('PUT Service Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update service', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
 // --- PATCH (Update Service) ---
 export async function PATCH(req: Request) {
   try {
-    await connectDB();
-    const payload = await req.json();
-    const { id, categoryId, heroSection, cardSections = [], content = '' } = payload || {};
-
-    if (!id) {
-      return NextResponse.json({ error: 'Service ID is required' }, { status: 400 });
-    }
-
-    // Add validation for both ID fields
-    if (!Types.ObjectId.isValid(id) || (categoryId && !Types.ObjectId.isValid(categoryId))) {
-      return NextResponse.json(
-        { error: 'Invalid ID format for service or category' },
-        { status: 400 }
-      );
-    }
-
-    const existingService = await ServiceModel.findById(id);
-    if (!existingService) {
-      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
-    }
-
-    // ✅ ADDED: If heroSection is being updated, generate a new slug
-    let slugUpdate = {};
-    if (heroSection && heroSection.title) {
-      slugUpdate = { slug: createSlug(heroSection.title) };
-    }
-
-    const updatedData = {
-      ...(categoryId && { categoryId }),
-      ...(heroSection && { heroSection }),
-      ...slugUpdate, // <-- ADDED: Update slug if title is changed
-      cardSections: (cardSections || []).map((cs: any) => ({
-        sectionTitle: cs.sectionTitle,
-        sectionDescription: cs.sectionDescription || '',
-        cards: (cs.cards || []).map((c: any) => ({
-          title: c.title,
-          description: c.description,
-        })),
-      })),
-      content,
-    };
-
-    const updatedService = await ServiceModel.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true, // Ensure validation runs on updates
-    });
-
-    return NextResponse.json({
-      message: 'Service updated successfully',
-      data: updatedService,
-    });
+    return await updateService(req);
   } catch (error: any) {
     console.error('PATCH Service Error:', error);
     return NextResponse.json(

@@ -1,36 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { MdExpandMore } from "react-icons/md";
+import axios from "axios";
 
-// --- Service Data ---
-const serviceCategories = {
-  "Business Owners": [
-    { title: "Accounting Outsourcing Services", desc: "CPAs' Go-to firm for all accounting needs.", icon: "🏦" },
-    { title: "Outsourced Tax Preparation", desc: "Keep Your Busy Tax Preparers on Support.", icon: "🧾" },
-    { title: "Accounting Software Consulting", desc: "Helping CPAs use their ideal accounting software.", icon: "💻" },
-    { title: "Virtual CFO", desc: "Reliable Virtual CFO Solutions.", icon: "🧑‍💼" },
-    { title: "Bookkeeping Services", desc: "Expert and Bookkeeping at Your Service.", icon: "📘" },
-    { title: "AR & AP Management", desc: "Comprehensive AR & AP Management Services.", icon: "📄" },
-    { title: "Payroll Management", desc: "Streamline Your CPA's Payroll Processes.", icon: "💵" },
-    { title: "Xero & QuickBooks Accounting", desc: "Specialized Xero & QuickBooks Services.", icon: "🪙" },
-  ],
-  "Valuation Services": [
-    { title: "Valuation Consulting", desc: "Expert assessment for M&A and regulatory needs.", icon: "⚖️" },
-    { title: "Due Diligence Support", desc: "Thorough financial investigation for acquisitions.", icon: "🔍" },
-  ],
-  "Advisory Services": [
-    { title: "Audit Support Services", desc: "Get Top-Notch Audit Support Service.", icon: "✅" },
-    { title: "Year-End Services", desc: "Smoothly Transition Into the New Fiscal Year.", icon: "📅" },
-    { title: "Offshore Staffing for CPA Firms", desc: "Cost-Effective Staffing Solutions for CPAs.", icon: "💼" },
-    { title: "Outsourced Finance and Accounting Services", desc: "Reliable Outsourced Financial Services.", icon: "📈" },
-    { title: "Cost & Operation Analysis", desc: "Drive Profitability & Make Data-Backed Decisions.", icon: "📉" },
-    { title: "Preparation Of Financial Statements", desc: "Providing A Reliable Financial Statements for Qs.", icon: "📝" },
-    { title: "Outsource Bookkeeping & Accounting Services for CPAs", desc: "Efficient CPA Assistance.", icon: "🤝" },
-  ],
-};
+interface ServiceItem {
+  _id: string;
+  heroSection?: { title: string; description: string };
+}
 
 // --- Dropdown Item ---
 const DropdownItem = ({ title, desc, icon }: { title: string; desc: string; icon: string }) => (
@@ -52,7 +31,29 @@ const DropdownItem = ({ title, desc, icon }: { title: string; desc: string; icon
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<keyof typeof serviceCategories>("Business Owners");
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [loadingServices, setLoadingServices] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoadingServices(true);
+        const response = await axios.get('/api/service');
+        if (response.status === 200) {
+          const result = response.data;
+          const data = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
+          setServices(data);
+        } else {
+          setServices([]);
+        }
+      } catch (e) {
+        setServices([]);
+      } finally {
+        setLoadingServices(false);
+      }
+    };
+    fetchServices();
+  }, []);
 
   const List = [
     { id: "1", link: "Home", path: "/" },
@@ -102,26 +103,30 @@ export default function Header() {
             className="absolute top-full right-0 mt-2 bg-white shadow-2xl rounded-xl p-6 border border-gray-100 z-50 flex"
                   style={{ width: "900px", maxWidth: "95vw" }} // adjust width as needed
                 >
-                  {/* Tabs */}
-                  <div className="w-1/4 pr-4 border-r border-gray-200 space-y-2">
-                    {Object.keys(serviceCategories).map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => setActiveTab(category as keyof typeof serviceCategories)}
-                        className={`w-full text-left py-3 px-3 rounded-lg text-sm font-medium transition-colors duration-200 ${activeTab === category
-                            ? "bg-green-100 text-green-700 border-l-4 border-green-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                          }`}
+                  {/* Services Grid from API */}
+                  <div className="w-full grid grid-cols-2 gap-x-4 gap-y-6">
+                    {loadingServices && (
+                      <div className="col-span-2 text-center text-gray-500">Loading services...</div>
+                    )}
+                    {!loadingServices && services.length === 0 && (
+                      <div className="col-span-2 text-center text-gray-500">No services available</div>
+                    )}
+                    {!loadingServices && services.length > 0 && services.map((svc) => (
+                      <Link
+                        key={svc._id}
+                        href={`/services/${(svc.heroSection?.title || 'service').toLowerCase().replace(/\s+/g, '-')}`}
+                        className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition duration-150 group"
                       >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Services Grid */}
-                  <div className="w-3/4 pl-6 grid grid-cols-2 gap-x-4 gap-y-6">
-                    {serviceCategories[activeTab].map((item, index) => (
-                      <DropdownItem key={index} {...item} />
+                        <div className="w-8 h-8 flex items-center justify-center text-xl text-green-600 border border-gray-300 rounded-full flex-shrink-0 mt-1">
+                          📌
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600">
+                            {svc.heroSection?.title || 'Untitled'}
+                          </p>
+                          <p className="text-xs text-gray-500 line-clamp-2">{svc.heroSection?.description || '—'}</p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </div>

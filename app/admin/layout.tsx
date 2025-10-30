@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { title: 'Dashboard', href: '/admin', icon: <AiOutlineDashboard size={20} /> },
     { title: 'Blogs', href: '/admin/blogs', icon: <AiOutlineRead size={20} /> },
     { title: 'Services', href: '/admin/services', icon: <AiOutlineAppstore size={20} /> },
-    { title: 'New Service', href: '/admin/services/new', icon: <AiOutlineFileAdd size={20} /> },
+    { title: 'Industries', href: '/admin/industries', icon: <AiOutlineFileAdd size={20} /> },
     { title: 'hero sections', href: '/admin/hero', icon: <AiOutlineAppstore size={20} /> },
     { title: 'About Us', href: '/admin/about', icon: <AiOutlineUser size={20} /> },
     { title: 'Team', href: '/admin/team', icon: <AiOutlineUser size={20} /> },

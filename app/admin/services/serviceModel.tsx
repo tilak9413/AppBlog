@@ -5,16 +5,39 @@ import { BiUpload } from 'react-icons/bi';
 import { BsTrash2 } from 'react-icons/bs';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, ErrorMessage, Field } from 'formik';
 import * as Yup from 'yup';
 import { Category } from '@/types/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import Textfield from '@/components/customeInput/Textfield';
+import CustomSelect from '@/components/selectBox/CustomSelect';
+import TextEditor from '@/components/TextEditor/TextEditor';
 
 // === Interfaces ===
+interface Service {
+  _id: string;
+  categoryId?: string;
+  heroSection: {
+    title: string;
+    description: string;
+    image?: string;
+  };
+  cardSections?: Array<{
+    sectionTitle: string;
+    sectionDescription: string;
+    cards: Array<{
+      title: string;
+      description: string;
+    }>;
+  }>;
+  content?: string;
+}
+
 interface ServiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  editingService?: Service | null;
 }
 
 interface Card {
@@ -33,7 +56,7 @@ interface CardSection {
 interface HeroSection {
   title: string;
   description: string;
-  image: string;
+  image?: string;
 }
 
 interface FormValues {
@@ -53,15 +76,24 @@ const ServiceSchema = Yup.object().shape({
   content: Yup.string().required('Content is required'),
 });
 
-export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModalProps) {
+export default function ServiceModal({ isOpen, onClose, onSuccess, editingService }: ServiceModalProps) {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const isEditing = !!editingService;
 
   useEffect(() => {
     if (isOpen) {
       axios.get('/api/service/categories').then((res) => {
-        console.log(res.data)
-        setCategories(res.data || []);
+        // Transform MongoDB documents to match Category type format
+        const transformedCategories = (res.data || []).map((cat: any) => ({
+          id: cat._id?.toString() || cat.id || '',
+          name: cat.name || '',
+          description: cat.description || '',
+        }));
+        setCategories(transformedCategories);
+      }).catch((error) => {
+        console.error('Failed to fetch categories:', error);
+        setCategories([]);
       });
     }
   }, [isOpen]);
@@ -84,7 +116,9 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
             transition={{ type: 'spring', damping: 20, stiffness: 200 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-semibold mb-4">Add New Service</h2>
+            <h2 className="text-2xl font-semibold mb-4">
+              {isEditing ? 'Edit Service' : 'Add New Service'}
+            </h2>
 
             {/* Close button */}
             <button
@@ -95,22 +129,42 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
             </button>
 
             <Formik<FormValues>
+              enableReinitialize
               initialValues={{
-                categoryId: '',
-                heroSection: { title: '', description: '', image: '' },
-                cardSections: [],
-                content: '',
+                categoryId: editingService?.categoryId?.toString() || '',
+                heroSection: editingService?.heroSection || { title: '', description: '', image: '' },
+                cardSections: editingService?.cardSections?.map(section => ({
+                  id: crypto.randomUUID(),
+                  sectionTitle: section.sectionTitle || '',
+                  sectionDescription: section.sectionDescription || '',
+                  cards: (section.cards || []).map(card => ({
+                    id: crypto.randomUUID(),
+                    title: card.title || '',
+                    description: card.description || '',
+                  })),
+                })) || [],
+                content: editingService?.content || '',
               }}
               validationSchema={ServiceSchema}
               onSubmit={async (values, { setSubmitting, resetForm }) => {
                 try {
-                  await axios.post('/api/service', values);
+                  if (isEditing && editingService?._id) {
+                    // Update existing service
+                    await axios.put('/api/service', {
+                      id: editingService._id,
+                      ...values,
+                    });
+                  } else {
+                    // Create new service
+                    await axios.post('/api/service', values);
+                  }
                   onSuccess();
                   resetForm();
                   onClose();
                   router.refresh();
-                } catch (error) {
-                  console.error(error);
+                } catch (error: any) {
+                  console.error('Service save error:', error);
+                  alert(error.response?.data?.error || 'Failed to save service');
                 } finally {
                   setSubmitting(false);
                 }
@@ -118,7 +172,7 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
             >
               {({ values, setFieldValue, isSubmitting }) => (
                 <Form className="space-y-6">
-                  {/* Category */}
+                  {/* === Category === */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Category</label>
                     <Field as="select" name="categoryId" className="w-full p-3 border rounded-lg">
@@ -129,11 +183,11 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
                         </option>
                       ))}
                     </Field>
-
                     <ErrorMessage name="categoryId" component="p" className="text-red-500 text-sm" />
                   </div>
 
-                  {/* Hero Section */}
+
+                  {/* === Hero Section === */}
                   <div className="border rounded-lg p-4 bg-gray-50">
                     <h3 className="font-semibold mb-3">Hero Section</h3>
 
@@ -172,33 +226,35 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Title</label>
-                      <Field name="heroSection.title" type="text" className="w-full p-2 border rounded" />
-                      <ErrorMessage
-                        name="heroSection.title"
-                        component="p"
-                        className="text-red-500 text-sm"
-                      />
-                    </div>
+                    <Textfield
+                      label="Hero Title"
+                      name="heroSection.title"
+                      placeholder="Enter hero title"
+                      value={values.heroSection.title}
+                      onChange={(e) => setFieldValue('heroSection.title', e.target.value)}
+                    />
+                    <ErrorMessage
+                      name="heroSection.title"
+                      component="p"
+                      className="text-red-500 text-sm"
+                    />
 
-                    <div className="mt-3">
-                      <label className="block text-sm font-medium mb-1">Description</label>
-                      <Field
-                        as="textarea"
-                        rows={3}
-                        name="heroSection.description"
-                        className="w-full p-2 border rounded"
-                      />
-                      <ErrorMessage
-                        name="heroSection.description"
-                        component="p"
-                        className="text-red-500 text-sm"
-                      />
-                    </div>
+                    <Textfield
+                      label="Hero Description"
+                      name="heroSection.description"
+                      type="textarea"
+                      placeholder="Enter hero description"
+                      value={values.heroSection.description}
+                      onChange={(e) => setFieldValue('heroSection.description', e.target.value)}
+                    />
+                    <ErrorMessage
+                      name="heroSection.description"
+                      component="p"
+                      className="text-red-500 text-sm"
+                    />
                   </div>
 
-                  {/* Card Sections */}
+                  {/* === Card Sections === */}
                   <div className="border rounded-lg p-4 bg-gray-50">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="font-semibold">Card Sections</h3>
@@ -239,17 +295,26 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
                           </button>
                         </div>
 
-                        <Field
+                        <Textfield
                           name={`cardSections[${sIndex}].sectionTitle`}
                           placeholder="Section Title"
-                          className="w-full mb-2 p-2 border rounded text-sm"
+                          value={section.sectionTitle}
+                          onChange={(e) => {
+                            const updated = [...values.cardSections];
+                            updated[sIndex].sectionTitle = e.target.value;
+                            setFieldValue('cardSections', updated);
+                          }}
                         />
-                        <Field
-                          as="textarea"
+                        <Textfield
                           name={`cardSections[${sIndex}].sectionDescription`}
+                          type="textarea"
                           placeholder="Section Description"
-                          rows={2}
-                          className="w-full mb-2 p-2 border rounded text-sm"
+                          value={section.sectionDescription}
+                          onChange={(e) => {
+                            const updated = [...values.cardSections];
+                            updated[sIndex].sectionDescription = e.target.value;
+                            setFieldValue('cardSections', updated);
+                          }}
                         />
 
                         {/* Add Card Button */}
@@ -288,17 +353,26 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
                               </button>
                             </div>
 
-                            <Field
+                            <Textfield
                               name={`cardSections[${sIndex}].cards[${cIndex}].title`}
                               placeholder="Card Title"
-                              className="w-full p-2 border rounded text-sm mb-2"
+                              value={card.title}
+                              onChange={(e) => {
+                                const updated = [...values.cardSections];
+                                updated[sIndex].cards[cIndex].title = e.target.value;
+                                setFieldValue('cardSections', updated);
+                              }}
                             />
-                            <Field
-                              as="textarea"
+                            <Textfield
                               name={`cardSections[${sIndex}].cards[${cIndex}].description`}
+                              type="textarea"
                               placeholder="Card Description"
-                              rows={2}
-                              className="w-full p-2 border rounded text-sm"
+                              value={card.description}
+                              onChange={(e) => {
+                                const updated = [...values.cardSections];
+                                updated[sIndex].cards[cIndex].description = e.target.value;
+                                setFieldValue('cardSections', updated);
+                              }}
                             />
                           </div>
                         ))}
@@ -306,21 +380,24 @@ export default function ServiceModal({ isOpen, onClose, onSuccess }: ServiceModa
                     ))}
                   </div>
 
-                  {/* Content */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Additional Content</label>
-                    <Field as="textarea" name="content" rows={5} className="w-full p-3 border rounded" />
-                    <ErrorMessage name="content" component="p" className="text-red-500 text-sm" />
-                  </div>
+         
+                  <TextEditor
+                    label="content"
+                    initialContent={values.content}
+                    onContentChange={(value: string) =>
+                      setFieldValue('content', value)
+                    }
+                  />
+                  <ErrorMessage name="content" component="p" className="text-red-500 text-sm" />
 
-                  {/* Buttons */}
+                  {/* === Buttons === */}
                   <div className="flex gap-4 mt-4">
                     <button
                       type="submit"
                       disabled={isSubmitting}
                       className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     >
-                      {isSubmitting ? 'Saving...' : 'Create Service'}
+                      {isSubmitting ? 'Saving...' : isEditing ? 'Update Service' : 'Create Service'}
                     </button>
                     <button
                       type="button"

@@ -1,7 +1,46 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+interface CaseStudyItem {
+  _id: string;
+  title: string;
+  content: string;
+}
 
 const CaseStudiesAndConnect: React.FC = () => {
+  const [caseStudies, setCaseStudies] = useState<CaseStudyItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchCaseStudies = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('/api/caseStudy');
+        if (response.status === 200) {
+          const result = response.data;
+          let studies: CaseStudyItem[] = [];
+          
+          if (Array.isArray(result)) {
+            studies = result;
+          } else if (Array.isArray(result?.data)) {
+            studies = result.data;
+          }
+          
+          // Limit to first 4 case studies
+          setCaseStudies(studies.slice(0, 4));
+        }
+      } catch (error) {
+        console.error('Error fetching case studies:', error);
+        setCaseStudies([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCaseStudies();
+  }, []);
+
   return (
     <section className="bg-white text-gray-800">
       {/* ======================= Case Studies Section ======================= */}
@@ -10,59 +49,32 @@ const CaseStudiesAndConnect: React.FC = () => {
           Case Studies
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Case Study 1 */}
-          <div className="border rounded-md p-4 shadow-sm hover:shadow-md transition-all">
-            <h3 className="font-medium text-[#3d466e] text-sm sm:text-base mb-2">
-              Accounting Setup For A Construction Company
-            </h3>
-            <a
-              href="#"
-              className="text-xs sm:text-sm text-[#3d466e] font-semibold hover:underline"
-            >
-              View Case Study →
-            </a>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-[#3d466e]"></div>
           </div>
-
-          {/* Case Study 2 */}
-          <div className="border rounded-md p-4 shadow-sm hover:shadow-md transition-all">
-            <h3 className="font-medium text-[#3d466e] text-sm sm:text-base mb-2">
-              ECommerce Tax & Compliance For CPA Firm Supporting Subscription Box Brands
-            </h3>
-            <a
-              href="#"
-              className="text-xs sm:text-sm text-[#3d466e] font-semibold hover:underline"
-            >
-              View Case Study →
-            </a>
+        ) : caseStudies.length === 0 ? (
+          <p className="text-center text-gray-600 py-8">No case studies available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {caseStudies.map((study) => (
+              <div
+                key={study._id}
+                className="border rounded-md p-4 shadow-sm hover:shadow-md transition-all"
+              >
+                <h3 className="font-medium text-[#3d466e] text-sm sm:text-base mb-2 line-clamp-2">
+                  {study.title}
+                </h3>
+                <a
+                  href={`/case-studies/${study._id}`}
+                  className="text-xs sm:text-sm text-[#3d466e] font-semibold hover:underline"
+                >
+                  View Case Study →
+                </a>
+              </div>
+            ))}
           </div>
-
-          {/* Case Study 3 */}
-          <div className="border rounded-md p-4 shadow-sm hover:shadow-md transition-all">
-            <h3 className="font-medium text-[#3d466e] text-sm sm:text-base mb-2">
-              Accounting Support For CPA Firm Serving Biotech Startups
-            </h3>
-            <a
-              href="#"
-              className="text-xs sm:text-sm text-[#3d466e] font-semibold hover:underline"
-            >
-              View Case Study →
-            </a>
-          </div>
-
-          {/* Case Study 4 */}
-          <div className="border rounded-md p-4 shadow-sm hover:shadow-md transition-all">
-            <h3 className="font-medium text-[#3d466e] text-sm sm:text-base mb-2">
-              Workflow Automation For CPA Firm Serving Construction Clients
-            </h3>
-            <a
-              href="#"
-              className="text-xs sm:text-sm text-[#3d466e] font-semibold hover:underline"
-            >
-              View Case Study →
-            </a>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ======================= Let's Connect Section ======================= */}

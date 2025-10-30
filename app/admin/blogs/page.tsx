@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import NewBlogModal from './new/page';
 
@@ -11,70 +12,72 @@ interface Blog {
   author: string;
   published: boolean;
   createdAt: string;
+  content?: string;
+  slug?: string;
+  excerpt?: string;
+  tags?: string[];
+  image?: string;
 }
 
 export default function AdminBlogs() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const response = await fetch('/api/blogs');
-        if (!response.ok) {
-          throw new Error('Failed to fetch blogs');
-        }
-        const data = await response.json();
-        setBlogs(data.blogs || []);
-      } catch (err) {
-        setError('Error fetching blogs. Please try again.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
+  const router = useRouter();
 
-    fetchBlogs();
-  }, []);
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this blog?')) {
-      return;
-    }
-
+  const fetchBlogs = async () => {
     try {
-      const response = await fetch(`/api/blogs/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete blog');
-      }
-
-      // Remove the deleted blog from the state
-      setBlogs(blogs.filter(blog => blog._id !== id));
+      const { data } = await axios.get('/api/blogs');
+      setBlogs(data || []);
     } catch (err) {
       console.error(err);
-      alert('Failed to delete blog. Please try again.');
+      setError('Error fetching blogs. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-10">Loading...</div>;
-  }
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
 
-  if (error) {
-    return <div className="text-center py-10 text-red-500">{error}</div>;
+const handleDelete = async (items: any) => {
+  if (!confirm("Are you sure you want to delete this case study?")) return;
+
+  try {
+    const response = await axios.delete('/api/blogs', {
+      data: { id: items },
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.status === 200) {
+      alert("Deleted successfully");
+    }
+  } catch (error) {
+    console.error("Delete failed:", error);
+    alert("Failed to delete case study");
   }
+};
+
+  const handleEdit = (blog: Blog) => {
+    setEditingBlog(blog);
+    setOpen(true);
+  };
+
+  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Manage Blogs</h1>
-          <button
-          onClick={() => setOpen(true)}
+        <button
+          onClick={() => {
+            setEditingBlog(null);
+            setOpen(true);
+          }}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
           New Blog
@@ -90,34 +93,39 @@ export default function AdminBlogs() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Author</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {blogs.map((blog) => (
                 <tr key={blog._id}>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{blog.title}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{blog.author}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{blog.title}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{blog.author}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${blog.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        blog.published
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
                       {blog.published ? 'Published' : 'Draft'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(blog.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link href={`/admin/blogs/edit/${blog._id}`} className="text-blue-600 hover:text-blue-900 mr-4">
+                  <td className="px-6 py-4 text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleEdit(blog)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
                       Edit
-                    </Link>
+                    </button>
                     <button
                       onClick={() => handleDelete(blog._id)}
                       className="text-red-600 hover:text-red-900"
@@ -131,17 +139,12 @@ export default function AdminBlogs() {
           </table>
         </div>
       )}
-  
-
-      {/* your blogs list here */}
 
       <NewBlogModal
         open={open}
         onClose={() => setOpen(false)}
-        onCreated={() => {
-          // optional: reload data, toast, etc.
-          router.refresh();
-        }}
+        onCreated={fetchBlogs}
+        editData={editingBlog}
       />
     </div>
   );

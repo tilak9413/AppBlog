@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   FaClock,
   FaStar,
@@ -18,7 +20,35 @@ const features = [
   { icon: <FaDollarSign />, title: "Cost-Efficient Services" },
 ];
 
+interface ServiceItem {
+  _id: string;
+  heroSection?: { title: string; description: string };
+}
+
 const WhyChooseUsSection: React.FC = () => {
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('/api/service');
+        if (response.status === 200) {
+          const result = response.data;
+          const data = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
+          setServices(data.slice(0, 4));
+        } else {
+          setServices([]);
+        }
+      } catch (e) {
+        setServices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServices();
+  }, []);
   return (
     <section className="bg-white py-16 px-4 md:px-16">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12">
@@ -33,10 +63,40 @@ const WhyChooseUsSection: React.FC = () => {
 
           <Link
             href="/hire-expert"
-            className="text-blue-600 font-semibold text-lg hover:underline flex items-center mb-12 lg:mb-0"
+            className="text-blue-600 font-semibold text-lg hover:underline flex items-center mb-4"
           >
             Hire expert today <span className="ml-2">→</span>
           </Link>
+
+          <Link
+            href="/services-list"
+            className="text-blue-600 font-semibold text-lg hover:underline flex items-center mb-12 lg:mb-0"
+          >
+            View all services <span className="ml-2">→</span>
+          </Link>
+
+          {/* Preview a few services */}
+          <div className="mt-6">
+            {loading ? (
+              <p className="text-gray-500 text-sm">Loading services…</p>
+            ) : (
+              <ul className="space-y-2">
+                {services.map((svc) => (
+                  <li key={svc._id}>
+                    <Link
+                      href={`/services/${(svc.heroSection?.title || 'service').toLowerCase().replace(/\s+/g, '-')}`}
+                      className="text-gray-800 hover:text-blue-600 text-base"
+                    >
+                      {svc.heroSection?.title || 'Untitled'}
+                    </Link>
+                  </li>
+                ))}
+                {!loading && services.length === 0 && (
+                  <li className="text-gray-500 text-sm">No services available.</li>
+                )}
+              </ul>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-12">
             {features.map((feature, index) => (

@@ -25,50 +25,13 @@ const fadeIn = (delay = 0, y = 40) => ({
 });
 
 
-const blogs = [
-    {
-        id: 1,
-        title: "Getting Started with Next.js 14",
-        img: "https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedcfeeebafefe65ebd0_icons8-checklist-94%201.svg",
-        excerpt: "Learn how to set up and structure your first Next.js app...",
-        date: "2025-10-22",
-    },
-    {
-        id: 2,
-        title: "Why Tailwind CSS is Perfect for Blogs",
-        img: "https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedee4354c083390f315_icons8-resume-94%201.svg",
-        excerpt: "A deep dive into Tailwind for fast UI development...",
-        date: "2025-10-20",
-    },
-    {
-        id: 3,
-        title: "Why Tailwind CSS is Perfect for Blogs",
-        img: "https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedd1ecc3b35a9896b53_icons8-talk-94%201.svg",
-        excerpt: "A deep dive into Tailwind for fast UI development...",
-        date: "2025-10-20",
-    },
-    {
-        id: 4,
-        title: "Why Tailwind CSS is Perfect for Blogs",
-        img: "https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedcdff39f1fc7a90b67_icons8-accounting-94%201.svg",
-        excerpt: "A deep dive into Tailwind for fast UI development...",
-        date: "2025-10-20",
-    },
-    {
-        id: 5,
-        title: "Why Tailwind CSS is Perfect for Blogs",
-        img: "https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedd58a2203357e2c49d_icons8-investment-94%201.svg",
-        excerpt: "A deep dive into Tailwind for fast UI development...",
-        date: "2025-10-20",
-    },
-    {
-        id: 6,
-        title: "Why Tailwind CSS is Perfect for Blogs",
-        img: "https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedc8d7996c335092337_icons8-bill-94%201.svg",
-        excerpt: "A deep dive into Tailwind for fast UI development...",
-        date: "2025-10-20",
-    },
-];
+// Services fetched for the cards grid
+type ServiceCardItem = {
+    _id: string;
+    slug?: string;
+    heroSection?: { title: string; description: string; image?: string };
+    createdAt?: string;
+};
 
 const companies = [
     { name: "Google", type: "image", logo: "/logos/google.png" },
@@ -122,6 +85,8 @@ export default function Home() {
         image: string;
     }[]>([]);
     const [loadingTrusted, setLoadingTrusted] = useState(true);
+    const [serviceCards, setServiceCards] = useState<ServiceCardItem[]>([]);
+    const [loadingServices, setLoadingServices] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchHero = async () => {
@@ -155,6 +120,29 @@ export default function Home() {
         fetchTrustedCompanies();
     }, []);
 
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                setLoadingServices(true);
+                const res = await axios.get('/api/service');
+                if (res.status === 200) {
+                    const result = res.data;
+                    const data: ServiceCardItem[] = Array.isArray(result?.data)
+                        ? result.data
+                        : (Array.isArray(result) ? result : []);
+                    setServiceCards(data.slice(0, 6));
+                } else {
+                    setServiceCards([]);
+                }
+            } catch (e) {
+                setServiceCards([]);
+            } finally {
+                setLoadingServices(false);
+            }
+        };
+        fetchServices();
+    }, []);
+
 
     return (
         <>
@@ -163,7 +151,7 @@ export default function Home() {
                     <HeroSection
                         title={heroData.title}
                         disc={heroData.disc}
-                        image={heroData.image}
+                        image={heroData.image ?? ''}
                     // buttonText={heroData.buttonText}
                     />
                 ) : (
@@ -241,22 +229,36 @@ export default function Home() {
                         </motion.p>
                     </div>
 
-                    {/* Blog Cards */}
+                    {/* Services Grid (from /api/service) */}
                     <motion.div
                         {...fadeIn(0.3, 20)}
                         className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                        {blogs.map((post, i) => (
-                            <motion.div
-                                key={post.id}
-                                whileHover={{ y: -6 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <Suspense fallback={<ComponentLoader height="h-64" message="Loading blog card..." />}>
-                                    <BlogServiceCard post={post} />
-                                </Suspense>
-                            </motion.div>
-                        ))}
+                        {loadingServices && (
+                            <ComponentLoader height="h-64" message="Loading services..." />
+                        )}
+                        {!loadingServices && serviceCards.map((svc, i) => {
+                            const post = {
+                                id: i + 1,
+                                title: svc.heroSection?.title || 'Untitled Service',
+                                img: svc.heroSection?.image || 'https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6732eedcfeeebafefe65ebd0_icons8-checklist-94%201.svg',
+                                excerpt: svc.heroSection?.description || '',
+                                date: svc.createdAt ? new Date(svc.createdAt).toLocaleDateString() : '',
+                            };
+                            const href = `/services/${svc.slug || (svc.heroSection?.title || 'service').toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')}`;
+                            return (
+                                <a key={svc._id} href={href} className="block">
+                                    <motion.div
+                                        whileHover={{ y: -6 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <Suspense fallback={<ComponentLoader height="h-64" message="Loading service card..." />}>
+                                            <BlogServiceCard post={post} />
+                                        </Suspense>
+                                    </motion.div>
+                                </a>
+                            );
+                        })}
                     </motion.div>
                 </motion.div>
 
