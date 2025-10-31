@@ -1,3 +1,4 @@
+'use client'
 import React from "react";
 import Select, { components, MenuProps } from "react-select";
 import { motion, AnimatePresence } from "framer-motion";

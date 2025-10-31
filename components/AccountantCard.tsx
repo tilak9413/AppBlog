@@ -1,3 +1,4 @@
+'use client'
 // File: AccountantCard.jsx
 import React from "react";
 

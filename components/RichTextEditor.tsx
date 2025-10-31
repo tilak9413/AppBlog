@@ -1,13 +1,14 @@
-// ...other imports
+'use client'
 import dynamic from 'next/dynamic';
 
-// SSR-safe CKEditor wrapper
- export const RichTextEditor = dynamic(
+export const RichTextEditor = dynamic(
   async () => {
     const { CKEditor } = await import('@ckeditor/ckeditor5-react');
     const ClassicEditor = (await import('@ckeditor/ckeditor5-build-classic')).default;
 
-    // Return an inline component so we can keep everything in one file
+    // ✅ Fix the type issue by casting to any
+    const SafeClassicEditor: any = ClassicEditor;
+
     return function Editor({
       value,
       onChange,
@@ -21,18 +22,29 @@ import dynamic from 'next/dynamic';
     }) {
       return (
         <CKEditor
-          editor={ClassicEditor}
+          editor={SafeClassicEditor} // ✅ fixed type
           data={value}
-          onChange={(_, editor : any) => onChange(editor.getData())}
+          onChange={(_, editor: any) => onChange(editor.getData())}
           onBlur={onBlur}
           config={{
             placeholder: placeholder ?? 'Write your post...',
             toolbar: [
-              'undo', 'redo', '|',
+              'undo',
+              'redo',
+              '|',
               'heading',
-              '|', 'bold', 'italic', 'link', 'blockQuote',
-              '|', 'bulletedList', 'numberedList', 'outdent', 'indent',
-              '|', 'insertTable',
+              '|',
+              'bold',
+              'italic',
+              'link',
+              'blockQuote',
+              '|',
+              'bulletedList',
+              'numberedList',
+              'outdent',
+              'indent',
+              '|',
+              'insertTable',
             ],
           }}
         />

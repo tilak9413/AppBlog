@@ -1,5 +1,6 @@
+'use client'
 // components/Footer.tsx
-import Image from 'next/image';
+// import Image from 'next/image';
 import Link from 'next/link';
 
 const FooterLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
