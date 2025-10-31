@@ -20,6 +20,7 @@ interface CaseStudyFormValues {
   headerTitle: string;
   headerDescription: string;
   cards: Card[];
+  
 }
 
 interface CaseStudyModalProps {
