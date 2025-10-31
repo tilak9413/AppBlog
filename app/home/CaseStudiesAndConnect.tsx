@@ -5,7 +5,7 @@ import axios from "axios";
 interface CaseStudyItem {
   _id: string;
   title: string;
-  content: string;
+  content?: string; // made optional for safety
 }
 
 const CaseStudiesAndConnect: React.FC = () => {
@@ -16,22 +16,25 @@ const CaseStudiesAndConnect: React.FC = () => {
     const fetchCaseStudies = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/caseStudy');
-        if (response.status === 200) {
-          const result = response.data;
+        const response = await axios.get("/api/caseStudy");
+
+        if (response?.status === 200) {
+          const result = response?.data;
           let studies: CaseStudyItem[] = [];
-          
+
           if (Array.isArray(result)) {
             studies = result;
           } else if (Array.isArray(result?.data)) {
             studies = result.data;
           }
-          
-          // Limit to first 4 case studies
+
+          // Limit to first 4 safely
           setCaseStudies(studies.slice(0, 4));
+        } else {
+          setCaseStudies([]);
         }
       } catch (error) {
-        console.error('Error fetching case studies:', error);
+        console.error("Error fetching case studies:", error);
         setCaseStudies([]);
       } finally {
         setLoading(false);
@@ -51,22 +54,24 @@ const CaseStudiesAndConnect: React.FC = () => {
 
         {loading ? (
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-[#3d466e]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-[#3d466e]" />
           </div>
-        ) : caseStudies.length === 0 ? (
-          <p className="text-center text-gray-600 py-8">No case studies available.</p>
+        ) : caseStudies?.length === 0 ? (
+          <p className="text-center text-gray-600 py-8">
+            No case studies available.
+          </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {caseStudies.map((study) => (
+            {caseStudies?.map((study) => (
               <div
-                key={study._id}
+                key={study?._id}
                 className="border rounded-md p-4 shadow-sm hover:shadow-md transition-all"
               >
                 <h3 className="font-medium text-[#3d466e] text-sm sm:text-base mb-2 line-clamp-2">
-                  {study.title}
+                  {study?.title || "Untitled Case Study"}
                 </h3>
                 <a
-                  href={`/case-studies/${study._id}`}
+                  href={`/case-studies/${study?._id}`}
                   className="text-xs sm:text-sm text-[#3d466e] font-semibold hover:underline"
                 >
                   View Case Study →
@@ -79,18 +84,15 @@ const CaseStudiesAndConnect: React.FC = () => {
 
       {/* ======================= Let's Connect Section ======================= */}
       <section className="relative py-24 overflow-hidden">
-        {/* Background with diagonal dashed pattern */}
+        {/* Background pattern */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
-           style={{
+          style={{
             backgroundImage:
               "url(https://cdn.prod.website-files.com/6718c309cc349b579872ddbb/6736f52aa2dea93969a896f8_line_cta.svg)",
-              backgroundSize: "100px 100px",
-            }
-
-          }
-        
-        ></div>
+            backgroundSize: "100px 100px",
+          }}
+        />
 
         {/* Center content */}
         <div className="relative z-10 flex items-center justify-center">

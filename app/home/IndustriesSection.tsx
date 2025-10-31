@@ -91,8 +91,8 @@ const IndustriesSection: React.FC = () => {
                 {/* === Icon === */}
                 <div className="p-4 mb-6   group-hover:scale-110 transition-transform duration-300">
                   <Image
-                    src={item.image}
-                    alt={item.title}
+                    src={item?.image}
+                    alt={item?.title}
                     width={48}
                     height={48}
                     className="object-contain w-10 h-10"
@@ -103,17 +103,17 @@ const IndustriesSection: React.FC = () => {
                 {/* === Title === */}
                 <h3
                   className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-green-700 transition-colors duration-300 line-clamp-1"
-                  title={item.title}
+                  title={item?.title}
                 >
-                  {item.title}
+                  {item?.title}
                 </h3>
 
                 {/* === Description === */}
                 <p
                   className="text-gray-600 text-sm sm:text-base leading-relaxed line-clamp-3"
-                  title={item.description}
+                  title={item?.description}
                 >
-                  {item.description}
+                  {item?.description}
                 </p>
               </div>
 

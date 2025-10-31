@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CustomButton from "../ui/customButtom/Button";
 
 interface Tab {
@@ -15,13 +15,25 @@ interface TabsProps {
   defaultActive?: string;
 }
 
-const Tabs: React.FC<TabsProps> = ({ tabs, onChange, defaultActive }) => {
-  const [active, setActive] = useState(defaultActive || tabs[0].value);
+const Tabs: React.FC<TabsProps> = ({ tabs = [], onChange, defaultActive }) => {
+  const [active, setActive] = useState<string>("");
+
+  // Initialize active tab safely
+  useEffect(() => {
+    if (tabs.length > 0) {
+      setActive(defaultActive || tabs[0].value);
+    }
+  }, [tabs, defaultActive]);
 
   const handleClick = (value: string) => {
     setActive(value);
     onChange?.(value);
   };
+
+  // If no tabs, render nothing or fallback
+  if (!tabs || tabs.length === 0) {
+    return <p className="text-center text-gray-500 py-8">No tabs available</p>;
+  }
 
   return (
     <div className="w-full">
@@ -47,7 +59,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, onChange, defaultActive }) => {
 
       {/* Active Tab Content */}
       <div className="w-full mt-8">
-        {tabs.find((tab) => tab.value === active)?.component}
+        {tabs.find((tab) => tab.value === active)?.component ?? null}
       </div>
     </div>
   );

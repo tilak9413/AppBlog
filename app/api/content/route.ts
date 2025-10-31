@@ -1,24 +1,11 @@
 import { connectDB } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
-import { caseStudyschema } from "@/app/api/model/casestudy";
+import { Content } from "../model/content";
 
 export async function GET(req: Request) {
   try {
-    await connectDB();
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-
-    // If ?slug=... is passed → return one blog
-    if (id) {
-      const blog = await caseStudyschema.findOne({ id }).lean();
-      if (!blog) {
-        return NextResponse.json({ error: "case studies not found" }, { status: 404 });
-      }
-      return NextResponse.json(blog);
-    }
-
-    // Otherwise → return all blogs
-    const blogs = await caseStudyschema.find().sort({ createdAt: -1 }).lean();
+    await connectDB()
+    const blogs = await Content.find().sort({ createdAt: -1 }).lean();
     if (!blogs || blogs.length === 0) {
       return NextResponse.json({ error: "No case studies found" }, { status: 404 });
     }
@@ -39,25 +26,16 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { title, content, headerTitle, headerDescription, cards } = body;
+    const { title, disc, image } = body;
 
-    if (!title || !content || !headerTitle || !headerDescription || !Array.isArray(cards)) {
+    if (!title ||!disc || !image ) {
       return NextResponse.json({ error: "Missing or invalid fields" }, { status: 400 });
     }
 
-    // Validate cards
-    for (const card of cards) {
-      if (!card.cardTitle || !card.cardDescription || !card.cardImage) {
-        return NextResponse.json({ error: "Each card must have all fields" }, { status: 400 });
-      }
-    }
-
-    const newCaseStudy = new caseStudyschema({
+    const newCaseStudy = new Content({
       title,
-      content,
-      headerTitle,
-      headerDescription,
-      cards,
+      disc,
+      image
     });
 
     await newCaseStudy.save();
@@ -74,20 +52,20 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const { id, title, content, headerTitle, headerDescription, cards } = body;
+    const {  id, title, disc, image } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
-    const existing = await caseStudyschema.findById(id);
+    const existing = await Content.findById(id);
     if (!existing) {
       return NextResponse.json({ error: "Case study not found" }, { status: 404 });
     }
 
-    const updatedCase = await caseStudyschema.findByIdAndUpdate(
+    const updatedCase = await Content.findByIdAndUpdate(
       id,
-      { title, content, headerTitle, headerDescription, cards },
+      { title, disc, image },
       { new: true }
     );
 
@@ -115,7 +93,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Missing required field: id" }, { status: 400 });
     }
 
-    const deleted = await caseStudyschema.findByIdAndDelete(id);
+    const deleted = await Content.findByIdAndDelete(id);
     if (!deleted) {
       return NextResponse.json({ error: "Case study not found" }, { status: 404 });
     }

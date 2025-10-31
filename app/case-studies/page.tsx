@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Link from 'next/link';
 
 interface CaseStudyItem {
   _id: string;
@@ -19,7 +20,7 @@ export default function CaseStudiesPage() {
       setLoading(true);
       setError('');
       const response = await axios.get('/api/caseStudy');
-      console.log(response)
+
       if (response.status === 200) {
         const result = response.data;
         if (Array.isArray(result)) setItems(result);
@@ -45,38 +46,48 @@ export default function CaseStudiesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Case Studies</h1>
-        <p className="mt-3 text-gray-600">Real examples of problems solved and outcomes delivered.</p>
+        <p className="mt-3 text-gray-600">
+          Real examples of problems solved and outcomes delivered.
+        </p>
       </div>
 
+      {/* Loader */}
       {loading && (
         <div className="flex justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500"></div>
         </div>
       )}
 
-      {!loading && error && (
-        <p className="text-center text-red-600">{error}</p>
-      )}
+      {/* Error */}
+      {!loading && error && <p className="text-center text-red-600">{error}</p>}
 
+      {/* Empty State */}
       {!loading && !error && items.length === 0 && (
         <p className="text-center text-gray-600">No case studies found.</p>
       )}
 
+      {/* Case Study Grid */}
       {!loading && !error && items.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item) => (
-            <article key={item._id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">{item.title}</h2>
-              <div
-                className="prose prose-sm text-gray-700 line-clamp-5 max-w-none"
-                dangerouslySetInnerHTML={{ __html: item.content }}
-              />
-            </article>
+            <Link
+              key={item._id}
+              href={`/case-study/${item._id}`}
+              className="group block bg-white rounded-2xl shadow-md hover:shadow-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:-translate-y-1"
+            >
+              <article className="p-5">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+                  {item.title}
+                </h2>
+                <div
+                  className="prose prose-sm text-gray-700 line-clamp-5 max-w-none"
+                  dangerouslySetInnerHTML={{ __html: item.content }}
+                />
+              </article>
+            </Link>
           ))}
         </div>
       )}
     </div>
   );
 }
-
-

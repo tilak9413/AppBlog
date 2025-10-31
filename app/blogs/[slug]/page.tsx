@@ -77,7 +77,7 @@ export default function BlogPage() {
         <p className="text-gray-600 mb-6">{blog?.excerpt}</p>
         {blog?.image && (
           <div className="w-full h-64 md:h-96 relative mb-6 rounded-xl overflow-hidden">
-            <Image src={blog.image} alt={blog.title} fill className="object-cover" />
+            <Image src={blog?.image} alt={blog?.title} fill className="object-cover" />
           </div>
         )}
         <div

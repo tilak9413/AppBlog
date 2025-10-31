@@ -1,26 +1,42 @@
-// components/BlogSection.tsx
-import BlogCard from "@/components/BlogCard";
-import React from "react";
+'use client';
 
-const blogs = [
-  {
-    title: "Agriculture Accounting: How Can Farmers Manage Finances Better?",
-    imageUrl: "/blog1.png", // Replace with your image path
-    link: "#",
-  },
-  {
-    title: "What Is Financial Reconciliation? A Complete Guide For CPA Firms",
-    imageUrl: "/blog2.png",
-    link: "#",
-  },
-  {
-    title: "How Much Does A Bookkeeper Cost?",
-    imageUrl: "/blog3.png",
-    link: "#",
-  },
-];
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import BlogCard from '@/components/BlogCard';
+
+interface Blog {
+  _id?: string;
+  title: string;
+  image: string;
+  disc: string;
+}
 
 const BlogSection: React.FC = () => {
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const res = await axios.get('/api/BlogSection');
+        setBlogs(res.data || []);
+      } catch (error) {
+        console.error('Error fetching blogs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-12 text-center text-gray-500 bg-gray-100">
+        Loading blogs...
+      </section>
+    );
+  }
+
   return (
     <section className="bg-gray-100 py-12 px-4 md:px-8">
       <div className="max-w-7xl mx-auto text-center mb-8">
@@ -29,12 +45,11 @@ const BlogSection: React.FC = () => {
         </h2>
       </div>
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {blogs.map((blog, index) => (
+        {blogs.map((blog) => (
           <BlogCard
-            key={index}
+            key={blog._id}
             title={blog.title}
-            imageUrl={blog.imageUrl}
-            link={blog.link}
+            imageUrl={blog.image}
           />
         ))}
       </div>

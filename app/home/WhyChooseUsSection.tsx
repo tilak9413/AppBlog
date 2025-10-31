@@ -35,7 +35,7 @@ const WhyChooseUsSection: React.FC = () => {
         setLoading(true);
         const response = await axios.get('/api/service');
         if (response.status === 200) {
-          const result = response.data;
+          const result = response?.data;
           const data = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
           setServices(data.slice(0, 4));
         } else {
@@ -81,7 +81,7 @@ const WhyChooseUsSection: React.FC = () => {
               <p className="text-gray-500 text-sm">Loading services…</p>
             ) : (
               <ul className="space-y-2">
-                {services.map((svc) => (
+                {services?.map((svc) => (
                   <li key={svc._id}>
                     <Link
                       href={`/services/${(svc.heroSection?.title || 'service').toLowerCase().replace(/\s+/g, '-')}`}
@@ -91,7 +91,7 @@ const WhyChooseUsSection: React.FC = () => {
                     </Link>
                   </li>
                 ))}
-                {!loading && services.length === 0 && (
+                {!loading && services?.length === 0 && (
                   <li className="text-gray-500 text-sm">No services available.</li>
                 )}
               </ul>

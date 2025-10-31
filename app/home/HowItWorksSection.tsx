@@ -6,20 +6,21 @@ import axios from "axios";
 
 interface StepData {
   _id?: string;
-  image?: string; // base64 or URL
-  title: string;
-  disc: string;
+  image?: string; // base64, local path, or URL
+  title?: string;
+  disc?: string;
 }
 
 const AUTO_SLIDE_INTERVAL = 4000;
 
 const HowItWorksSection: React.FC = () => {
   const [steps, setSteps] = useState<StepData[]>([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [visibleItems, setVisibleItems] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [visibleItems, setVisibleItems] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const getVisibleItems = () => {
+  // Responsive visible items logic
+  const getVisibleItems = (): number => {
     if (typeof window === "undefined") return 1;
     if (window.innerWidth >= 1024) return 3;
     if (window.innerWidth >= 768) return 2;
@@ -27,15 +28,25 @@ const HowItWorksSection: React.FC = () => {
   };
 
   // Fetch data from API
-  const fetchSteps = async () => {
+  const fetchSteps = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get("/api/hire");
-      const data = Array.isArray(res.data) ? res.data : [res.data];
-      setSteps(data);
+      const data = Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.data)
+        ? res.data.data
+        : [];
+
+      // ✅ Only use valid entries
+      setSteps(
+        data.filter(
+          (item : any): item is StepData => !!item?.title && !!item?.disc
+        )
+      );
     } catch (error) {
-      console.error("Failed to fetch steps:", error);
-      // fallback data if fetch fails
+      console.error("❌ Failed to fetch steps:", error);
+      // Fallback data for production reliability
       setSteps([
         {
           title: "1. Preliminary Discussion",
@@ -56,12 +67,13 @@ const HowItWorksSection: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSteps();
-  }, []);
+  }, [fetchSteps]);
 
+  // Handle responsive layout
   useEffect(() => {
     const handleResize = () => setVisibleItems(getVisibleItems());
     setVisibleItems(getVisibleItems());
@@ -69,9 +81,10 @@ const HowItWorksSection: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const totalSlides = steps.length;
-  const totalPages = Math.ceil(totalSlides / visibleItems);
+  const totalSlides = steps?.length || 0;
+  const totalPages = Math.max(1, Math.ceil(totalSlides / visibleItems));
 
+  // Auto-slide logic
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === totalPages - 1 ? 0 : prev + 1));
   }, [totalPages]);
@@ -100,7 +113,7 @@ const HowItWorksSection: React.FC = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
           </div>
-        ) : steps.length === 0 ? (
+        ) : steps?.length === 0 ? (
           <p className="text-center text-gray-500 text-lg">
             No steps found. Please add new entries.
           </p>
@@ -112,16 +125,16 @@ const HowItWorksSection: React.FC = () => {
                 className="flex transition-transform duration-700 ease-in-out"
                 style={{ transform: `translateX(-${trackShiftPercentage}%)` }}
               >
-                {steps.map((step, index) => (
+                {steps?.map((step, index) => (
                   <div
-                    key={step._id || index}
+                    key={step?._id || index}
                     className="flex-shrink-0 p-3"
                     style={{ width: `calc(100% / ${visibleItems})` }}
                   >
                     {/* Step Card */}
                     <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 sm:p-8 flex flex-col items-center md:items-start text-center md:text-left h-full">
                       <div className="relative h-40 w-full mb-6 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden">
-                        {step.image ? (
+                        {step?.image ? (
                           <Image
                             src={
                               step.image.startsWith("data:image")
@@ -130,7 +143,7 @@ const HowItWorksSection: React.FC = () => {
                                 ? step.image
                                 : `data:image/png;base64,${step.image}`
                             }
-                            alt={step.title}
+                            alt={step?.title ?? "Step Image"}
                             width={200}
                             height={100}
                             className="object-contain"
@@ -140,10 +153,10 @@ const HowItWorksSection: React.FC = () => {
                         )}
                       </div>
                       <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                        {step.title}
+                        {step?.title ?? "Untitled Step"}
                       </h3>
                       <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                        {step.disc}
+                        {step?.disc ?? "No description provided."}
                       </p>
                     </div>
                   </div>

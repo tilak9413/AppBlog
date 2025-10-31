@@ -33,7 +33,7 @@ const Page = () => {
       const data = await response.json();
 
       if (Array.isArray(data)) setBlogs(data);
-      else if (Array.isArray(data.blogs)) setBlogs(data.blogs);
+      else if (Array.isArray(data?.blogs)) setBlogs(data?.blogs);
       else setBlogs([]);
     } catch (err) {
       console.error('Fetch error:', err);
@@ -82,19 +82,19 @@ const Page = () => {
       <section className="py-12 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {blogs.length > 0 ? (
-            blogs.map((blog) => (
+            blogs?.map((blog) => (
               <BlogCard
-                key={blog._id}
-                slug={blog.slug}
-                title={blog.title}
-                imageUrl={blog.image}
-                category={blog.category}
-                date={new Date(blog.createdAt).toLocaleDateString('en-US', {
+                key={blog?._id}
+                slug={blog?.slug}
+                title={blog?.title}
+                imageUrl={blog?.image}
+                category={blog?.category}
+                date={new Date(blog?.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })}
-                readingTime={blog.readTime || '5 min read'}
+                readingTime={blog?.readTime || '5 min read'}
               />
             ))
           ) : (
@@ -120,15 +120,15 @@ const Page = () => {
             className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 overflow-y-auto max-h-[80vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-semibold mb-4">{selectedBlog.title}</h2>
+            <h2 className="text-2xl font-semibold mb-4">{selectedBlog?.title}</h2>
             <img
-              src={selectedBlog.image}
-              alt={selectedBlog.title}
+              src={selectedBlog?.image}
+              alt={selectedBlog?.title}
               className="rounded-lg mb-4 w-full object-cover h-60"
             />
             <div
               className="prose prose-slate max-w-none"
-              dangerouslySetInnerHTML={{ __html: selectedBlog.content }}
+              dangerouslySetInnerHTML={{ __html: selectedBlog?.content }}
             />
           </div>
         </div>

@@ -9,6 +9,7 @@ import axios from "axios";
 interface ServiceItem {
   _id: string;
   heroSection?: { title: string; description: string };
+  slug:any
 }
 
 // --- Dropdown Item ---
@@ -114,7 +115,7 @@ export default function Header() {
                     {!loadingServices && services.length > 0 && services.map((svc) => (
                       <Link
                         key={svc._id}
-                        href={`/services/${(svc.heroSection?.title || 'service').toLowerCase().replace(/\s+/g, '-')}`}
+                        href={`/services/${svc.slug || (svc.heroSection?.title || 'service').toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')}`}
                         className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition duration-150 group"
                       >
                         <div className="w-8 h-8 flex items-center justify-center text-xl text-green-600 border border-gray-300 rounded-full flex-shrink-0 mt-1">
