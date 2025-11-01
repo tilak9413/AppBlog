@@ -9,45 +9,71 @@ import axios from "axios";
 interface ServiceItem {
   _id: string;
   heroSection?: { title: string; description: string };
-  slug:any
+  slug?: string;
+  categoryId: string;
 }
 
-// --- Dropdown Item ---
-const DropdownItem = ({ title, desc, icon }: { title: string; desc: string; icon: string }) => (
-  <Link
-    href={`/services/${title.toLowerCase().replace(/\s/g, "-")}`}
-    className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition duration-150 group"
-  >
-    <div className="w-8 h-8 flex items-center justify-center text-xl text-green-600 border border-gray-300 rounded-full flex-shrink-0 mt-1">
-      {icon}
-    </div>
-    <div className="ml-4">
-      <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600">{title}</p>
-      <p className="text-xs text-gray-500">{desc}</p>
-    </div>
-  </Link>
-);
+interface Category {
+  _id: string;
+  name: string;
+  description?: string;
+}
 
 // --- Header Component ---
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loadingServices, setLoadingServices] = useState<boolean>(false);
 
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/api/service/categories');
+        if (response.status === 200 && response.data) {
+          const cats = Array.isArray(response.data) ? response.data : [];
+          setCategories(cats);
+          // Set first category as active by default
+          if (cats.length > 0) {
+            setActiveTab(cats[0]._id);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch services
   useEffect(() => {
     const fetchServices = async () => {
       try {
         setLoadingServices(true);
         const response = await axios.get('/api/service');
-        if (response.status === 200) {
+        console.log('Services API Response:', response.data);
+        
+        if (response.status === 200 && response.data) {
           const result = response.data;
-          const data = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
+          // Handle different response formats
+          let data: ServiceItem[] = [];
+          
+          if (Array.isArray(result.data)) {
+            data = result.data;
+          } else if (Array.isArray(result)) {
+            data = result;
+          }
+          
+          console.log('Parsed services data:', data);
           setServices(data);
         } else {
           setServices([]);
         }
-      } catch (e) {
+      } catch (error) {
+        console.error('Failed to fetch services:', error);
         setServices([]);
       } finally {
         setLoadingServices(false);
@@ -71,7 +97,7 @@ export default function Header() {
   );
 
   return (
-    <header onMouseLeave={()=>setServicesOpen(false)} className=" w-full bg-white z-50">
+    <header className=" w-full bg-white z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center p-4 relative">
         {/* Logo */}
         <div className="flex items-center space-x-2">
@@ -97,38 +123,83 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* Mega Menu */}
+              {/* Mega Menu - Stanfox Style */}
               {item.isDropdown && servicesOpen && (
-
                 <div
-            className="absolute top-full right-0 mt-2 bg-white shadow-2xl rounded-xl p-6 border border-gray-100 z-50 flex"
-                  style={{ width: "900px", maxWidth: "95vw" }} // adjust width as needed
+                  onMouseEnter={() => setServicesOpen(true)}
+                  onMouseLeave={() => setServicesOpen(false)}
+                  className="fixed top-18 left-7/10 -translate-x-1/2 bg-white shadow-2xl rounded-2xl border border-gray-200 z-50 overflow-hidden"
+                  style={{ width: "900px", maxWidth: "90vw" }}
                 >
-                  {/* Services Grid from API */}
-                  <div className="w-full grid grid-cols-2 gap-x-4 gap-y-6">
-                    {loadingServices && (
-                      <div className="col-span-2 text-center text-gray-500">Loading services...</div>
-                    )}
-                    {!loadingServices && services.length === 0 && (
-                      <div className="col-span-2 text-center text-gray-500">No services available</div>
-                    )}
-                    {!loadingServices && services.length > 0 && services.map((svc) => (
-                      <Link
-                        key={svc._id}
-                        href={`/services/${svc.slug || (svc.heroSection?.title || 'service').toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')}`}
-                        className="flex items-start p-3 rounded-lg hover:bg-gray-50 transition duration-150 group"
-                      >
-                        <div className="w-8 h-8 flex items-center justify-center text-xl text-green-600 border border-gray-300 rounded-full flex-shrink-0 mt-1">
-                          📌
+                  <div className="flex">
+                    {/* Left Sidebar - Category Tabs */}
+                    <div className="w-1/4 bg-gray-50 p-6 border-r border-gray-200">
+                      {categories.length === 0 ? (
+                        <div className="text-sm text-gray-500 text-center py-4">
+                          No categories
                         </div>
-                        <div className="ml-4">
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-blue-600">
-                            {svc.heroSection?.title || 'Untitled'}
-                          </p>
-                          <p className="text-xs text-gray-500 line-clamp-2">{svc.heroSection?.description || '—'}</p>
+                      ) : (
+                        categories.map((category) => (
+                          <button
+                            key={category._id}
+                            onClick={() => setActiveTab(category._id)}
+                            className={`w-full text-left py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 mb-2 ${
+                              activeTab === category._id
+                                ? "bg-green-100 text-green-700 shadow-sm"
+                                : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                          >
+                            {category.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Right Content - Services Grid */}
+                    <div className="w-3/4 p-6">
+                      {loadingServices ? (
+                        <div className="flex justify-center items-center h-full text-gray-500">
+                          Loading services...
                         </div>
-                      </Link>
-                    ))}
+                      ) : (() => {
+                          const filteredServices = services.filter((svc) => svc.categoryId === activeTab);
+                          return filteredServices.length === 0 ? (
+                            <div className="flex justify-center items-center h-full text-gray-400">
+                              No services in this category
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-4">
+                              {filteredServices.map((svc) => (
+                            <Link
+                              key={svc._id}
+                              href={`/services/${
+                                svc.slug ||
+                                (svc.heroSection?.title || "service")
+                                  .toLowerCase()
+                                  .trim()
+                                  .replace(/[^a-z0-9\s-]/g, "")
+                                  .replace(/\s+/g, "-")
+                                  .replace(/-+/g, "-")
+                              }`}
+                              className="flex items-start p-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group border border-transparent hover:border-gray-200"
+                            >
+                              <div className="w-10 h-10 flex items-center justify-center text-xl bg-green-50 text-green-600 rounded-full flex-shrink-0 border border-green-200">
+                                �
+                              </div>
+                              <div className="ml-3">
+                                <p className="text-sm font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                                  {svc.heroSection?.title || "Untitled"}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                  {svc.heroSection?.description || "—"}
+                                </p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                          );
+                        })()}
+                    </div>
                   </div>
                 </div>
               )}

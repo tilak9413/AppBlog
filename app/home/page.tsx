@@ -33,45 +33,6 @@ type ServiceCardItem = {
     createdAt?: string;
 };
 
-const companies = [
-    { name: "Google", type: "image", logo: "/logos/google.png" },
-    {
-        name: "AWS",
-        type: "svg",
-        logo: (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 154" className="w-24 h-10">
-                <path
-                    fill="#FF9900"
-                    d="M52.8 125.5c-18.9 14.1-37.2 22.4-56.4 26.2C-7.7 152.9 0 146 4.6 137.6 12 125 22.6 109.7 31.5 99c11-12.8 21.6-20.8 32.4-25.6 9.8-4.3 17.2-5.2 25.1-2.9 9.4 2.9 15.7 9.9 18.8 19.8 3.3 10.6 2.4 22.3-3 33.6-6.2 12.5-17.2 23.2-33.2 34.3l-18.8 12.8z"
-                />
-            </svg>
-        ),
-    },
-    { name: "Microsoft", type: "image", logo: "/logos/microsoft.png" },
-    {
-        name: "Vercel",
-        type: "svg",
-        logo: (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000" className="w-24 h-10">
-                <path fill="currentColor" d="M577.5 0L1155 1000H0z" />
-            </svg>
-        ),
-    },
-    { name: "Spotify", type: "image", logo: "/logos/spotify.png" },
-    {
-        name: "TailwindCSS",
-        type: "svg",
-        logo: (
-            <svg viewBox="0 0 48 28" xmlns="http://www.w3.org/2000/svg" className="w-24 h-10">
-                <path
-                    fill="#38bdf8"
-                    d="M24 0C17.6 0 13.6 3.2 12 9.6c2.4-3.2 5.2-4.4 8.4-3.6 1.8.4 3 1.6 4.4 3.2 2.4 2.8 5.2 5.6 10.8 5.6 6.4 0 10.4-3.2 12-9.6-2.4 3.2-5.2 4.4-8.4 3.6-1.8-.4-3-1.6-4.4-3.2C32.4 2.8 29.6 0 24 0zm-12 14.4c-6.4 0-10.4 3.2-12 9.6 2.4-3.2 5.2-4.4 8.4-3.6 1.8.4 3 1.6 4.4 3.2 2.4 2.8 5.2 5.6 10.8 5.6 6.4 0 10.4-3.2 12-9.6-2.4 3.2-5.2 4.4-8.4 3.6-1.8-.4-3-1.6-4.4-3.2-2.4-2.8-5.2-5.6-10.8-5.6z"
-                />
-            </svg>
-        ),
-    },
-];
-
 export default function Home() {
     const [heroData, setHeroData] = useState<{
         title: string;
@@ -160,39 +121,62 @@ export default function Home() {
             </Suspense>
 
             {/* Trusted Companies Section */}
-            <motion.section {...fadeIn(0.2, 50)} className="relative w-full py-20 bg-gradient-to-br from-gray-50 to-white overflow-hidden flex flex-col items-center">
-                <motion.h1 {...fadeIn(0.1, 20)} className="text-3xl md:text-4xl font-bold text-gray-800 mb-10 text-center">
-                    Trusted by Global Companies
-                </motion.h1>
-
-                <div className="relative w-full overflow-hidden">
+            <motion.section 
+                {...fadeIn(0.2, 50)} 
+                className="relative w-full py-20 bg-gradient-to-b from-white to-gray-50 overflow-hidden"
+            >
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-12">
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+                            Trusted by Leading Firms
+                        </h2>
+                        <p className="text-gray-600">
+                            Join hundreds of accounting professionals who trust us
+                        </p>
+                    </div>
+                    
                     {loadingTrusted ? (
-                        <div className="flex justify-center items-center h-24">
-                            <ComponentLoader height="h-24" message="Loading companies..." />
+                        <div className="flex justify-center items-center h-32">
+                            <ComponentLoader height="h-32" message="Loading companies..." />
+                        </div>
+                    ) : trustedCompanies.length > 0 ? (
+                        <div className="relative overflow-hidden py-8">
+                            <motion.div
+                                className="flex gap-16 items-center"
+                                animate={{ x: ["0%", "-50%"] }}
+                                transition={{ 
+                                    repeat: Infinity, 
+                                    repeatType: "loop", 
+                                    duration: 35, 
+                                    ease: "linear" 
+                                }}
+                            >
+                                {[...trustedCompanies, ...trustedCompanies].map((company, index) => (
+                                    <div 
+                                        key={index} 
+                                        className="flex flex-col items-center justify-center min-w-[200px] h-28 px-6 opacity-70 hover:opacity-100 transition-all duration-300 hover:scale-105"
+                                    >
+                                        <Image
+                                            src={company.image}
+                                            alt={company.name}
+                                            width={180}
+                                            height={70}
+                                            className="object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                                        />
+                                    </div>
+                                ))}
+                            </motion.div>
+                            
+                            {/* Enhanced gradient overlays */}
+                            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 via-gray-50/80 to-transparent pointer-events-none z-10"></div>
+                            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 via-gray-50/80 to-transparent pointer-events-none z-10"></div>
                         </div>
                     ) : (
-                        <motion.div
-                            className="flex gap-10"
-                            animate={{ x: ["0%", "-50%"] }}
-                            transition={{ repeat: Infinity, repeatType: "loop", duration: 15, ease: "linear" }}
-                        >
-                            {[...trustedCompanies, ...trustedCompanies].map((company, index) => (
-                                <div key={index} className="flex items-center justify-center w-32 h-16 opacity-80 hover:opacity-100 transition">
-                                    <Image
-                                        src={company.image}
-                                        alt={company.name}
-                                        width={120}
-                                        height={60}
-                                        className="object-contain grayscale hover:grayscale-0 transition duration-300"
-                                    />
-                                </div>
-                            ))}
-                        </motion.div>
+                        <div className="text-center text-gray-400 py-8">
+                            No companies to display
+                        </div>
                     )}
                 </div>
-
-                <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent"></div>
-                <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent"></div>
             </motion.section>
 
 

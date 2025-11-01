@@ -3,12 +3,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Suspense, lazy } from "react";
 import ComponentLoader from "@/components/ComponentLoader";
+import NextTopLoader from "nextjs-toploader";
 
 // Lazy load layout components
 const Header = lazy(() => import("@/components/layout/Header"));
 const Footer = lazy(() => import("@/components/layout/Footer"));
-
-;
 
 // === Metadata ===
 export const metadata: Metadata = {
@@ -23,10 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={` antialiased`}
+        suppressHydrationWarning
       >
+        <NextTopLoader
+          color="#6366f1"
+          height={3}
+          showSpinner={false}
+          speed={200}
+          shadow="0 0 10px #6366f1,0 0 5px #6366f1"
+        />
         <Suspense
           fallback={<ComponentLoader height="h-16" message="Loading header..." />}
         >

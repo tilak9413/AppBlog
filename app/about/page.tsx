@@ -117,13 +117,13 @@ const AboutPage: React.FC = () => {
             <h2 className="text-3xl font-bold text-center mb-8">Our Team</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {aboutData.team.map((member, idx) => (
-                <div key={idx} className="bg-white p-6  shadow-md text-center">
+                <div key={idx} className="bg-white p-6 rounded-lg shadow-md text-center">
                   <Image
-                    src={member.image || '/fallback-image.jpg'}
+                    src={member.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300'}
                     alt={member.name}
                     width={120}
                     height={120}
-                    className="mx-auto  mb-4 object-cover"
+                    className="mx-auto rounded-full mb-4 object-cover"
                   />
                   <h3 className="text-xl font-bold">{member.name}</h3>
                   <p className="text-indigo-600">{member.position}</p>

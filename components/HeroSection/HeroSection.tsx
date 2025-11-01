@@ -33,7 +33,7 @@ const HeroSection: React.FC<Props> = ({ title, disc  , image }) => {
         </p>
 
         <div className="flex items-center justify-center md:justify-start gap-4">
-          <Link href="/blog">
+          <Link href="/blogs">
             <CustomButton
               text={
                 <span className="flex items-center gap-2">

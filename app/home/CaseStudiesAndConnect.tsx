@@ -104,9 +104,9 @@ const CaseStudiesAndConnect: React.FC = () => {
               Connect with our accounting professionals & get started today!
             </p>
 
-            <button className="px-6 py-3 bg-[#3d466e] text-white rounded-md hover:bg-[#2f3859] transition-all shadow-md">
-              Hire Talent
-            </button>
+            <a href="/Contactus" className="inline-block px-6 py-3 bg-[#3d466e] text-white rounded-md hover:bg-[#2f3859] transition-all shadow-md">
+              Contact Us
+            </a>
           </div>
         </div>
       </section>
